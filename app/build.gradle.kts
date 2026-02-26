@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.gessport"
+    namespace = "com.example.ProyectoGes"
     compileSdk = 36
 
     defaultConfig {
@@ -61,6 +61,8 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.room.common.jvm)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.ui)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

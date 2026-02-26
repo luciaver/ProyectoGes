@@ -16,6 +16,8 @@ foundationLayout = "1.9.4"
 ui = "1.9.5"
 roomCommonJvm = "2.8.4"
 roomKtx = "2.8.4"
+foundation = "1.10.2"
+uiVersion = "1.10.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -40,6 +42,8 @@ androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
 androidx-room-common-jvm = { group = "androidx.room", name = "room-common-jvm", version.ref = "roomCommonJvm" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "roomKtx" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+ui = { group = "androidx.compose.ui", name = "ui", version.ref = "uiVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
