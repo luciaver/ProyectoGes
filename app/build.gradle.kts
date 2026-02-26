@@ -11,7 +11,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.gessport"
+        applicationId = "com.example.ProyectoGes"
         minSdk = 28
         targetSdk = 36
         versionCode = 1
