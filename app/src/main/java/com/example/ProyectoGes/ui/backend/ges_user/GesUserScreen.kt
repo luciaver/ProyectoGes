@@ -1,6 +1,5 @@
 package com.example.ProyectoGes.ui.backend.ges_user
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -9,51 +8,42 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.ProyectoGes.models.User
 import com.example.ProyectoGes.models.UserRoles
-import Routes
+import com.example.ProyectoGes.ui.home.*
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GesUserScreen(navController: NavHostController) {
-    val context = LocalContext.current
-    val viewModel: GesUserViewModel = viewModel(
-        factory = GesUserViewModelFactory(context)
-    )
+    val context   = LocalContext.current
+    val viewModel: GesUserViewModel = viewModel(factory = GesUserViewModelFactory(context))
 
     val users        by viewModel.users.collectAsState()
     val selectedRole  = viewModel.selectedRole
 
-    val redPrimary     = Color(0xFFFF0000)
-    val grayBackground = Color(0xFFE0E0E0)
-    val whiteCard      = Color(0xFFFFFFFF)
-
     Scaffold(
-        containerColor = grayBackground,
+        containerColor = DarkBg,
         topBar = {
             TopAppBar(
-                title = {
-                    Text("Gestión de Usuarios", color = Color.White, fontWeight = FontWeight.Bold)
-                },
+                title = { Text("Gestión de Usuarios", color = White, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = White)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = redPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkSurface)
             )
         }
     ) { paddingValues ->
@@ -63,96 +53,79 @@ fun GesUserScreen(navController: NavHostController) {
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp)
         ) {
-            Text(
-                text = "Filtrar por rol:",
-                color = Color.Black,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text("Filtrar por rol:", color = White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            Spacer(modifier = Modifier.height(8.dp))
 
             LazyRow(
-                contentPadding = PaddingValues(bottom = 16.dp),
+                contentPadding = PaddingValues(bottom = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 item {
                     FilterChip(
                         selected = selectedRole == null,
-                        onClick = { viewModel.onRoleSelected(null) },
-                        label = { Text("TODOS") },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = redPrimary,
-                            selectedLabelColor     = Color.White
+                        onClick  = { viewModel.onRoleSelected(null) },
+                        label    = { Text("TODOS") },
+                        colors   = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = BlueMain,
+                            selectedLabelColor     = White
                         )
                     )
                 }
-
                 items(UserRoles.allRoles.toList()) { (roleKey, roleLabel) ->
                     FilterChip(
                         selected = selectedRole == roleKey,
-                        onClick = {
-                            val newRole = if (selectedRole == roleKey) null else roleKey
-                            viewModel.onRoleSelected(newRole)
+                        onClick  = {
+                            viewModel.onRoleSelected(if (selectedRole == roleKey) null else roleKey)
                         },
-                        label = { Text(roleLabel) },
+                        label  = { Text(roleLabel) },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = redPrimary,
-                            selectedLabelColor     = Color.White
+                            selectedContainerColor = BlueMain,
+                            selectedLabelColor     = White
                         )
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Botones: Añadir / Modificar / Eliminar
+            // Botones acción
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Button(
                     onClick = { navController.navigate(Routes.AddUser) },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
-                    shape = RoundedCornerShape(8.dp),
+                    colors  = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
+                    shape   = RoundedCornerShape(8.dp),
                     modifier = Modifier.weight(1f)
-                ) { Text("Añadir", fontSize = 14.sp) }
+                ) { Text("Añadir", fontSize = 13.sp) }
 
                 Button(
                     onClick = { navController.navigate(Routes.SelectUser) },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)),
-                    shape = RoundedCornerShape(8.dp),
+                    colors  = ButtonDefaults.buttonColors(containerColor = BlueMain),
+                    shape   = RoundedCornerShape(8.dp),
                     modifier = Modifier.weight(1f)
-                ) { Text("Modificar", fontSize = 14.sp) }
+                ) { Text("Modificar", fontSize = 13.sp) }
 
                 Button(
                     onClick = { navController.navigate(Routes.DeleteUser) },
-                    colors = ButtonDefaults.buttonColors(containerColor = redPrimary),
-                    shape = RoundedCornerShape(8.dp),
+                    colors  = ButtonDefaults.buttonColors(containerColor = Color(0xFFB71C1C)),
+                    shape   = RoundedCornerShape(8.dp),
                     modifier = Modifier.weight(1f)
-                ) { Text("Eliminar", fontSize = 14.sp) }
+                ) { Text("Eliminar", fontSize = 13.sp) }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             if (users.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "No hay usuarios para mostrar",
-                        color = Color.Black.copy(alpha = 0.6f),
-                        fontSize = 16.sp
-                    )
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("No hay usuarios para mostrar", color = TextSecondary, fontSize = 15.sp)
                 }
             } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxHeight()
-                ) {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(users) { user ->
-                        UserListItem(user = user, whiteCard = whiteCard)
+                        UserListItem(user = user)
                     }
                 }
             }
@@ -160,65 +133,38 @@ fun GesUserScreen(navController: NavHostController) {
     }
 }
 
-// ── Tarjeta de usuario en la lista principal ─────────────────────────────────
 @Composable
-fun UserListItem(user: User, whiteCard: Color) {
-    val redPrimary = Color(0xFFFF0000)
-
+fun UserListItem(user: User) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = whiteCard),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape    = RoundedCornerShape(10.dp),
+        colors   = CardDefaults.cardColors(containerColor = CardColor),
+        elevation = CardDefaults.cardElevation(2.dp)
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp)
-        ) {
-            // Nombre
-            Text(text = user.nombre, color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(4.dp))
+        Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
+            Text(user.nombre, color = White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(3.dp))
+            Text(user.email, color = TextSecondary, fontSize = 13.sp)
+            Spacer(modifier = Modifier.height(3.dp))
+            Text("Rol: ${getRoleName(user.rol)}", color = BlueLight, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            Text("Edad: ${user.edad} años  |  Tel: ${user.telefono}", color = TextSecondary, fontSize = 12.sp)
 
-            // Email
-            Text(text = user.email, color = Color.Black.copy(alpha = 0.7f), fontSize = 14.sp)
-            Spacer(modifier = Modifier.height(4.dp))
-
-            // Rol
-            Text(
-                text = "Rol: ${getRoleName(user.rol)}",
-                color = redPrimary,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-
-            // Edad
-            Text(text = "Edad: ${user.edad} años", color = Color.Black.copy(alpha = 0.7f), fontSize = 14.sp)
-            Spacer(modifier = Modifier.height(2.dp))
-
-            // Teléfono
-            Text(text = "Teléfono: ${user.telefono}", color = Color.Black.copy(alpha = 0.7f), fontSize = 14.sp)
-
-            // Posición y Equipo → solo si es JUGADOR y tiene valor
-            if (user.rol == "JUGADOR") {
-                Spacer(modifier = Modifier.height(4.dp))
+            if (UserRoles.rolesConEquipo.contains(user.rol)) {
                 user.posicion?.let {
-                    Text(text = "Posición: $it", color = Color(0xFF2196F3), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    Text("Posición: $it", color = BlueLight, fontSize = 12.sp)
                 }
                 user.equipo?.let {
-                    Text(text = "Equipo: $it", color = Color(0xFF2196F3), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    Text("Equipo: $it", color = BlueLight, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
     }
 }
 
-// ── Helper: nombre legible del rol ───────────────────────────────────────────
-fun getRoleName(roleKey: String): String {
-    return when (roleKey.uppercase()) {
-        "ADMIN_DEPORTIVO" -> "Administrador Deportivo"
-        "ENTRENADOR"      -> "Entrenador"
-        "JUGADOR"         -> "Jugador"
-        "ARBITRO"         -> "Árbitro"
-        else              -> roleKey
-    }
+fun getRoleName(roleKey: String): String = when (roleKey.uppercase()) {
+    "ADMIN_DEPORTIVO" -> "Administrador Deportivo"
+    "ENTRENADOR"      -> "Entrenador"
+    "JUGADOR"         -> "Jugador"
+    "ARBITRO"         -> "Árbitro"
+    else              -> roleKey
 }

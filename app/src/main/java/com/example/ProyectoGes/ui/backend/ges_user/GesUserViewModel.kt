@@ -1,9 +1,9 @@
 package com.example.ProyectoGes.ui.backend.ges_user
 
 import android.content.Context
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ProyectoGes.data.RoomUserRepository
@@ -16,9 +16,7 @@ import kotlinx.coroutines.launch
 
 class GesUserViewModel(context: Context) : ViewModel() {
 
-    private val userRepository = RoomUserRepository(
-        AppDatabase.getDatabase(context).userDao()
-    )
+    private val userRepository = RoomUserRepository(AppDatabase.getDatabase(context).userDao())
 
     private val _users = MutableStateFlow<List<User>>(emptyList())
     val users: StateFlow<List<User>> = _users.asStateFlow()
@@ -29,22 +27,13 @@ class GesUserViewModel(context: Context) : ViewModel() {
     private var _userToEdit by mutableStateOf<User?>(null)
     val userToEdit: User? get() = _userToEdit
 
-    init {
-        loadUsers()
-    }
+    init { loadUsers() }
 
     private fun loadUsers() {
         viewModelScope.launch {
-
-            val flow = if (_selectedRole == null) {
-                userRepository.getAllUsers()
-            } else {
-                userRepository.getUsersByRole(_selectedRole!!)
-            }
-
-            flow.collect { userList ->
-                _users.value = userList
-            }
+            val flow = if (_selectedRole == null) userRepository.getAllUsers()
+            else userRepository.getUsersByRole(_selectedRole!!)
+            flow.collect { _users.value = it }
         }
     }
 
@@ -54,28 +43,18 @@ class GesUserViewModel(context: Context) : ViewModel() {
     }
 
     fun addUser(user: User) {
-        viewModelScope.launch {
-            userRepository.addUser(user)
-
-        }
+        viewModelScope.launch { userRepository.addUser(user) }
     }
 
     fun updateUser(user: User) {
-        viewModelScope.launch {
-            val rowsUpdated = userRepository.updateUser(user)
-
-        }
+        viewModelScope.launch { userRepository.updateUser(user) }
     }
 
     fun deleteUser(id: Int) {
-        viewModelScope.launch {
-            val success = userRepository.deleteUser(id)
-
-        }
+        viewModelScope.launch { userRepository.deleteUser(id) }
     }
 
     fun getUserById(id: Int) {
-
         _userToEdit = _users.value.find { it.id == id }
     }
 }

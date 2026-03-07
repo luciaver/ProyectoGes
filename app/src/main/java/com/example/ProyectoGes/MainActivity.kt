@@ -1,5 +1,6 @@
 package com.example.ProyectoGes
 
+
 import Navigation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -29,7 +30,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
 /*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

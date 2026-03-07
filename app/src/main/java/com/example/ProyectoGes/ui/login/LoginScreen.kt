@@ -1,3 +1,4 @@
+// LoginScreen.kt
 package com.example.ProyectoGes.ui.login
 
 import androidx.compose.foundation.Image
@@ -34,8 +35,6 @@ fun LoginScreen(navController: NavHostController) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-
-// Inicializar Room y Repository
     val database = remember { AppDatabase.getDatabase(context) }
     val userRepository = remember { RoomUserRepository(database.userDao()) }
     val logic = remember { LogicLogin(userRepository) }
@@ -72,7 +71,6 @@ fun LoginScreen(navController: NavHostController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            // Imagen de cabecera
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -84,7 +82,6 @@ fun LoginScreen(navController: NavHostController) {
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
-
                 Text(
                     text = "GesSport",
                     color = Color.White,
@@ -98,7 +95,6 @@ fun LoginScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Campo Email
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -129,7 +125,6 @@ fun LoginScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Campo Contraseña
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -159,7 +154,6 @@ fun LoginScreen(navController: NavHostController) {
                 )
             }
 
-            // Checkbox para recordar contraseña
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -184,7 +178,6 @@ fun LoginScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Boton de la loginca
             Button(
                 onClick = {
                     scope.launch {
@@ -192,11 +185,11 @@ fun LoginScreen(navController: NavHostController) {
                             val user = logic.comprobarLogin(email, password)
                             errorMessage = null
 
-                            // Verificar si es admin y si es pues te lleva al panel del admin
                             if (user.rol.equals("ADMIN_DEPORTIVO", ignoreCase = true)) {
                                 navController.navigate(Routes.AdminPanel)
                             } else {
-                                navController.navigate("${Routes.Home}/${user.nombre}")
+                                // ✅ CORREGIDO: se pasa también el rol
+                                navController.navigate("${Routes.Home}/${user.nombre}/${user.rol}")
                             }
                         } catch (e: IllegalArgumentException) {
                             errorMessage = e.message
@@ -230,7 +223,6 @@ fun LoginScreen(navController: NavHostController) {
                 }
             }
 
-            // Mensaje de error
             if (errorMessage != null) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
@@ -242,7 +234,6 @@ fun LoginScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Enlace de registro
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "¿No tienes cuenta?", color = Color.White)
                 Spacer(modifier = Modifier.width(4.dp))
@@ -257,7 +248,6 @@ fun LoginScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Iconos sociales
             Row(
                 horizontalArrangement = Arrangement.spacedBy(32.dp),
                 verticalAlignment = Alignment.CenterVertically

@@ -9,85 +9,62 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.ProyectoGes.models.User
+import com.example.ProyectoGes.models.UserRoles
+import com.example.ProyectoGes.ui.home.*
 import Routes
 
-@ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectUserScreen(navController: NavHostController) {
-    val context = LocalContext.current
-    val viewModel: GesUserViewModel = viewModel(
-        factory = GesUserViewModelFactory(context)
-    )
-
+    val context   = LocalContext.current
+    val viewModel: GesUserViewModel = viewModel(factory = GesUserViewModelFactory(context))
     val users by viewModel.users.collectAsState()
 
-    val redPrimary     = Color(0xFFFF0000)
-    val grayBackground = Color(0xFFE0E0E0)
-    val whiteCard      = Color(0xFFFFFFFF)
-
     Scaffold(
-        containerColor = grayBackground,
+        containerColor = DarkBg,
         topBar = {
             TopAppBar(
-                title = {
-                    Text("Seleccionar Usuario", color = Color.White, fontWeight = FontWeight.Bold)
-                },
+                title = { Text("Seleccionar Usuario", color = White, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = White)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = redPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkSurface)
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
-        ) {
+        Column(modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp)) {
             Text(
-                text = "Selecciona el usuario a modificar:",
-                color = Color.Black,
-                fontSize = 16.sp,
+                "Selecciona el usuario a modificar:",
+                color = White,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 14.dp)
             )
 
             if (users.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "No hay usuarios para modificar",
-                        color = Color.Black.copy(alpha = 0.6f),
-                        fontSize = 16.sp
-                    )
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("No hay usuarios para modificar", color = TextSecondary, fontSize = 15.sp)
                 }
             } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(users) { user ->
                         SelectUserCard(
-                            user = user,
-                            whiteCard = whiteCard,
-                            onEditClick = {
-                                navController.navigate("${Routes.EditUser}/${user.id}")
-                            }
+                            user        = user,
+                            onEditClick = { navController.navigate("${Routes.EditUser}/${user.id}") }
                         )
                     }
                 }
@@ -97,68 +74,33 @@ fun SelectUserScreen(navController: NavHostController) {
 }
 
 @Composable
-fun SelectUserCard(
-    user: User,
-    whiteCard: Color,
-    onEditClick: () -> Unit
-) {
-    val blueAccent = Color(0xFF2196F3)
-
+fun SelectUserCard(user: User, onEditClick: () -> Unit) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onEditClick),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = whiteCard),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        modifier  = Modifier.fillMaxWidth().clickable(onClick = onEditClick),
+        shape     = RoundedCornerShape(10.dp),
+        colors    = CardDefaults.cardColors(containerColor = CardColor),
+        elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                // Nombre
-                Text(text = user.nombre, color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // Email
-                Text(text = user.email, color = Color.Black.copy(alpha = 0.7f), fontSize = 14.sp)
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // Rol
-                Text(
-                    text = "Rol: ${getRoleName(user.rol)}",
-                    color = blueAccent,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-
-                // Edad
-                Text(text = "Edad: ${user.edad} años", color = Color.Black.copy(alpha = 0.7f), fontSize = 14.sp)
-                Spacer(modifier = Modifier.height(2.dp))
-
-                // Teléfono
-                Text(text = "Teléfono: ${user.telefono}", color = Color.Black.copy(alpha = 0.7f), fontSize = 14.sp)
-
-                // Posición y Equipo solo para JUGADOR
-                if (user.rol == "JUGADOR") {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    user.posicion?.let {
-                        Text(text = "Posición: $it", color = blueAccent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                    }
-                    user.equipo?.let {
-                        Text(text = "Equipo: $it", color = blueAccent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                    }
+                Text(user.nombre, color = White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(3.dp))
+                Text(user.email, color = TextSecondary, fontSize = 13.sp)
+                Spacer(modifier = Modifier.height(3.dp))
+                Text("Rol: ${getRoleName(user.rol)}", color = BlueLight, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                Text("Edad: ${user.edad}  |  Tel: ${user.telefono}", color = TextSecondary, fontSize = 12.sp)
+                if (UserRoles.rolesConEquipo.contains(user.rol)) {
+                    user.equipo?.let { Text("Equipo: $it", color = BlueLight, fontSize = 12.sp) }
                 }
             }
-
-            // Botón edit
             IconButton(
                 onClick = onEditClick,
-                colors = IconButtonDefaults.iconButtonColors(containerColor = blueAccent)
+                colors  = IconButtonDefaults.iconButtonColors(containerColor = BlueMain)
             ) {
-                Icon(imageVector = Icons.Default.Edit, contentDescription = "Modificar", tint = Color.White)
+                Icon(Icons.Default.Edit, contentDescription = "Modificar", tint = White)
             }
         }
     }

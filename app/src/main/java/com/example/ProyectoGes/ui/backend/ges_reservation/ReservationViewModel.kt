@@ -1,9 +1,6 @@
 package com.example.ProyectoGes.ui.backend.ges_reservation
 
 import android.content.Context
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -21,8 +18,9 @@ class ReservationViewModel(context: Context) : ViewModel() {
     private val _reservations = MutableStateFlow<List<Reservation>>(emptyList())
     val reservations: StateFlow<List<Reservation>> = _reservations.asStateFlow()
 
-    var reservationToEdit by mutableStateOf<Reservation?>(null)
-        private set
+    // Horas ya reservadas para la instalación + fecha seleccionadas
+    private val _bookedSlots = MutableStateFlow<List<String>>(emptyList())
+    val bookedSlots: StateFlow<List<String>> = _bookedSlots.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -30,9 +28,17 @@ class ReservationViewModel(context: Context) : ViewModel() {
         }
     }
 
+    /** Carga solo las reservas del usuario indicado. */
     fun loadByUser(userId: Int) {
         viewModelScope.launch {
             dao.getByUser(userId).collect { _reservations.value = it }
+        }
+    }
+
+    /** Consulta qué horas están ya ocupadas para una instalación y fecha. */
+    fun loadBookedSlots(facilityId: Int, fecha: String) {
+        viewModelScope.launch {
+            _bookedSlots.value = dao.getBookedSlots(facilityId, fecha)
         }
     }
 
@@ -42,13 +48,9 @@ class ReservationViewModel(context: Context) : ViewModel() {
 
     fun deleteReservation(id: Int) {
         viewModelScope.launch {
-            val r = dao.getById(id)
-            if (r != null) dao.delete(r)
+            val r = dao.getById(id) ?: return@launch
+            dao.delete(r)
         }
-    }
-
-    fun getReservationById(id: Int) {
-        reservationToEdit = _reservations.value.find { it.id == id }
     }
 }
 

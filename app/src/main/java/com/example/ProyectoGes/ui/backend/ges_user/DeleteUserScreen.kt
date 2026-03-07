@@ -13,177 +13,121 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.ProyectoGes.models.User
+import com.example.ProyectoGes.models.UserRoles
+import com.example.ProyectoGes.ui.home.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeleteUserScreen(navController: NavHostController) {
-    val context = LocalContext.current
-    val viewModel: GesUserViewModel = viewModel(
-        factory = GesUserViewModelFactory(context)
-    )
+    val context   = LocalContext.current
+    val viewModel: GesUserViewModel = viewModel(factory = GesUserViewModelFactory(context))
 
     val users by viewModel.users.collectAsState()
-    var showDialog      by rememberSaveable { mutableStateOf(false) }
-    var userIdToDelete  by rememberSaveable { mutableStateOf<Int?>(null) }
-
-    val redPrimary     = Color(0xFFFF0000)
-    val grayBackground = Color(0xFFE0E0E0)
-    val whiteCard      = Color(0xFFFFFFFF)
+    var showDialog     by rememberSaveable { mutableStateOf(false) }
+    var userIdToDelete by rememberSaveable { mutableStateOf<Int?>(null) }
 
     val userToDelete = users.find { it.id == userIdToDelete }
 
     Scaffold(
-        containerColor = grayBackground,
+        containerColor = DarkBg,
         topBar = {
             TopAppBar(
-                title = {
-                    Text("Eliminar Usuario", color = Color.White, fontWeight = FontWeight.Bold)
-                },
+                title = { Text("Eliminar Usuario", color = White, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = White)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = redPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkSurface)
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
-        ) {
+        Column(modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp)) {
             Text(
-                text = "Selecciona el usuario a eliminar:",
-                color = Color.Black,
-                fontSize = 16.sp,
+                "Selecciona el usuario a eliminar:",
+                color = White,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 14.dp)
             )
 
             if (users.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "No hay usuarios para eliminar",
-                        color = Color.Black.copy(alpha = 0.6f),
-                        fontSize = 16.sp
-                    )
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("No hay usuarios para eliminar", color = TextSecondary, fontSize = 15.sp)
                 }
             } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(users) { user ->
                         DeleteUserCard(
-                            user = user,
-                            whiteCard = whiteCard,
-                            redPrimary = redPrimary,
-                            onDeleteClick = {
-                                userIdToDelete = user.id
-                                showDialog = true
-                            }
+                            user          = user,
+                            onDeleteClick = { userIdToDelete = user.id; showDialog = true }
                         )
                     }
                 }
             }
         }
 
-        // Diálogo de confirmación
         if (showDialog && userToDelete != null) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },
-                title = { Text("Confirmar eliminación") },
-                text = { Text("¿Estás seguro de que deseas eliminar a ${userToDelete.nombre}?") },
+                title  = { Text("Confirmar eliminación") },
+                text   = { Text("¿Eliminar a ${userToDelete.nombre}?") },
                 confirmButton = {
                     Button(
                         onClick = {
                             userIdToDelete?.let { viewModel.deleteUser(it) }
-                            showDialog = false
+                            showDialog     = false
                             userIdToDelete = null
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = redPrimary)
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB71C1C))
                     ) { Text("Eliminar") }
                 },
                 dismissButton = {
-                    TextButton(onClick = {
-                        showDialog = false
-                        userIdToDelete = null
-                    }) { Text("Cancelar") }
-                }
+                    TextButton(onClick = { showDialog = false; userIdToDelete = null }) {
+                        Text("Cancelar")
+                    }
+                },
+                containerColor = DarkSurface
             )
         }
     }
 }
 
 @Composable
-fun DeleteUserCard(
-    user: User,
-    whiteCard: Color,
-    redPrimary: Color,
-    onDeleteClick: () -> Unit
-) {
+fun DeleteUserCard(user: User, onDeleteClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = whiteCard),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        modifier  = Modifier.fillMaxWidth(),
+        shape     = RoundedCornerShape(10.dp),
+        colors    = CardDefaults.cardColors(containerColor = CardColor),
+        elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                // Nombre
-                Text(text = user.nombre, color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // Email
-                Text(text = user.email, color = Color.Black.copy(alpha = 0.7f), fontSize = 14.sp)
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // Rol
-                Text(
-                    text = "Rol: ${getRoleName(user.rol)}",
-                    color = redPrimary,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-
-                // Edad
-                Text(text = "Edad: ${user.edad} años", color = Color.Black.copy(alpha = 0.7f), fontSize = 14.sp)
-                Spacer(modifier = Modifier.height(2.dp))
-
-                // Teléfono
-                Text(text = "Teléfono: ${user.telefono}", color = Color.Black.copy(alpha = 0.7f), fontSize = 14.sp)
-
-                // Posición y Equipo solo para JUGADOR
-                if (user.rol == "JUGADOR") {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    user.posicion?.let {
-                        Text(text = "Posición: $it", color = redPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                    }
-                    user.equipo?.let {
-                        Text(text = "Equipo: $it", color = redPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                    }
+                Text(user.nombre, color = White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(3.dp))
+                Text(user.email, color = TextSecondary, fontSize = 13.sp)
+                Spacer(modifier = Modifier.height(3.dp))
+                Text("Rol: ${getRoleName(user.rol)}", color = BlueLight, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                Text("Edad: ${user.edad}  |  Tel: ${user.telefono}", color = TextSecondary, fontSize = 12.sp)
+                if (UserRoles.rolesConEquipo.contains(user.rol)) {
+                    user.equipo?.let { Text("Equipo: $it", color = BlueLight, fontSize = 12.sp) }
                 }
             }
-
-            // Botón eliminar
             IconButton(
                 onClick = onDeleteClick,
-                colors = IconButtonDefaults.iconButtonColors(containerColor = redPrimary)
+                colors  = IconButtonDefaults.iconButtonColors(containerColor = Color(0xFFB71C1C))
             ) {
-                Icon(imageVector = Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.White)
+                Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = White)
             }
         }
     }

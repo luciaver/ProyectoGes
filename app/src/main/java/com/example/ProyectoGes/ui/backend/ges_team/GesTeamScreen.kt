@@ -22,7 +22,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.ProyectoGes.models.Team
-import Routes
+import com.example.ProyectoGes.navigation.Routes
+
 
 private val DarkBg        = Color(0xFF0D0D0D)
 private val DarkSurface   = Color(0xFF1A1A2E)

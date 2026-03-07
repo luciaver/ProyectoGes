@@ -22,6 +22,10 @@ interface ReservationDao {
     @Query("SELECT COUNT(*) FROM reservas")
     suspend fun getCount(): Int
 
+    // Devuelve las horas ya reservadas para una instalación y fecha concretas
+    @Query("SELECT horaInicio FROM reservas WHERE instalacionId = :facilityId AND fecha = :fecha")
+    suspend fun getBookedSlots(facilityId: Int, fecha: String): List<String>
+
     @Update
     suspend fun update(reservation: Reservation): Int
 

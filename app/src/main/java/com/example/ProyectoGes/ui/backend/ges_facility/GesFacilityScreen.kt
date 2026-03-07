@@ -5,7 +5,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,12 +18,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.ProyectoGes.models.Facility
-import com.example.ProyectoGes.ui.home.*
-import Routes
-import androidx.compose.ui.unit.sp
+import com.example.ProyectoGes.navigation.Routes
+
+
+private val DarkBg        = Color(0xFF0D0D0D)
+private val DarkSurface   = Color(0xFF1A1A2E)
+private val CardColor     = Color(0xFF16213E)
+private val BlueMain      = Color(0xFF1565C0)
+private val BlueLight     = Color(0xFF2196F3)
+private val White         = Color(0xFFFFFFFF)
+private val TextSecondary = Color(0xFFB0BEC5)
 
 // ──────────────────────────────────────────────────────────────
 // LISTA INSTALACIONES
@@ -54,7 +66,10 @@ fun GesFacilityScreen(navController: NavController) {
         }
     ) { padding ->
         if (facilities.isEmpty()) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
                 Text("No hay instalaciones", color = TextSecondary)
             }
         } else {
@@ -67,9 +82,7 @@ fun GesFacilityScreen(navController: NavController) {
                         facility = facility,
                         onEdit = { navController.navigate("${Routes.EditFacility}/${facility.id}") },
                         onDelete = { toDelete = facility; showDelete = true },
-                        onToggle = {
-                            vm.updateFacility(facility.copy(disponible = !facility.disponible))
-                        }
+                        onToggle = { vm.updateFacility(facility.copy(disponible = !facility.disponible)) }
                     )
                 }
             }
@@ -96,7 +109,12 @@ fun GesFacilityScreen(navController: NavController) {
 }
 
 @Composable
-fun FacilityCard(facility: Facility, onEdit: () -> Unit, onDelete: () -> Unit, onToggle: () -> Unit) {
+fun FacilityCard(
+    facility: Facility,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    onToggle: () -> Unit
+) {
     val statusColor = if (facility.disponible) Color(0xFF4CAF50) else Color(0xFFEF5350)
 
     Card(
@@ -104,8 +122,16 @@ fun FacilityCard(facility: Facility, onEdit: () -> Unit, onDelete: () -> Unit, o
         colors = CardDefaults.cardColors(containerColor = CardColor),
         shape = RoundedCornerShape(12.dp)
     ) {
-        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Place, contentDescription = null, tint = BlueLight, modifier = Modifier.size(40.dp))
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Default.Place,
+                contentDescription = null,
+                tint = BlueLight,
+                modifier = Modifier.size(40.dp)
+            )
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(facility.nombre, color = White, fontWeight = FontWeight.Bold)
@@ -133,32 +159,46 @@ fun FacilityCard(facility: Facility, onEdit: () -> Unit, onDelete: () -> Unit, o
 }
 
 // ──────────────────────────────────────────────────────────────
-// AÑADIR / EDITAR INSTALACIÓN
+// AÑADIR INSTALACIÓN
 // ──────────────────────────────────────────────────────────────
 @Composable
 fun AddFacilityScreen(navController: NavController) {
     FacilityFormScreen(navController = navController, title = "Nueva Instalación")
 }
 
+// ──────────────────────────────────────────────────────────────
+// EDITAR INSTALACIÓN
+// ──────────────────────────────────────────────────────────────
 @Composable
 fun EditFacilityScreen(navController: NavController, facilityId: Int) {
     val context = LocalContext.current
     val vm: FacilityViewModel = viewModel(factory = FacilityViewModelFactory(context))
     LaunchedEffect(facilityId) { vm.getFacilityById(facilityId) }
-    FacilityFormScreen(navController = navController, title = "Editar Instalación", existing = vm.facilityToEdit)
+    FacilityFormScreen(
+        navController = navController,
+        title = "Editar Instalación",
+        existing = vm.facilityToEdit
+    )
 }
 
+// ──────────────────────────────────────────────────────────────
+// FORMULARIO COMPARTIDO
+// ──────────────────────────────────────────────────────────────
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FacilityFormScreen(navController: NavController, title: String, existing: Facility? = null) {
+fun FacilityFormScreen(
+    navController: NavController,
+    title: String,
+    existing: Facility? = null
+) {
     val context = LocalContext.current
     val vm: FacilityViewModel = viewModel(factory = FacilityViewModelFactory(context))
 
-    var nombre by remember { mutableStateOf(existing?.nombre ?: "") }
-    var tipo by remember { mutableStateOf(existing?.tipo ?: "Pádel") }
-    var capacidad by remember { mutableStateOf(existing?.capacidad?.toString() ?: "4") }
+    var nombre     by remember { mutableStateOf(existing?.nombre ?: "") }
+    var tipo       by remember { mutableStateOf(existing?.tipo ?: "Pádel") }
+    var capacidad  by remember { mutableStateOf(existing?.capacidad?.toString() ?: "4") }
     var disponible by remember { mutableStateOf(existing?.disponible ?: true) }
-    var error by remember { mutableStateOf<String?>(null) }
+    var error      by remember { mutableStateOf<String?>(null) }
 
     val tipos = listOf("Pádel", "Tenis", "Fútbol", "Baloncesto", "Gimnasio", "Multideporte")
 
@@ -177,11 +217,32 @@ fun FacilityFormScreen(navController: NavController, title: String, existing: Fa
         }
     ) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            AppTextField(label = "Nombre", value = nombre, onValueChange = { nombre = it })
+            // Nombre
+            OutlinedTextField(
+                value = nombre,
+                onValueChange = { nombre = it },
+                label = { Text("Nombre", color = TextSecondary) },
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor   = CardColor,
+                    unfocusedContainerColor = CardColor,
+                    focusedBorderColor      = BlueLight,
+                    unfocusedBorderColor    = TextSecondary,
+                    focusedTextColor        = White,
+                    unfocusedTextColor      = White,
+                    cursorColor             = BlueLight
+                ),
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
 
+            // Tipo
             Text("Tipo", color = White, fontWeight = FontWeight.SemiBold)
             tipos.forEach { t ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -194,8 +255,26 @@ fun FacilityFormScreen(navController: NavController, title: String, existing: Fa
                 }
             }
 
-            AppTextField(label = "Capacidad", value = capacidad, onValueChange = { capacidad = it })
+            // Capacidad
+            OutlinedTextField(
+                value = capacidad,
+                onValueChange = { capacidad = it },
+                label = { Text("Capacidad", color = TextSecondary) },
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor   = CardColor,
+                    unfocusedContainerColor = CardColor,
+                    focusedBorderColor      = BlueLight,
+                    unfocusedBorderColor    = TextSecondary,
+                    focusedTextColor        = White,
+                    unfocusedTextColor      = White,
+                    cursorColor             = BlueLight
+                ),
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
 
+            // Disponible
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Disponible", color = White)
                 Spacer(modifier = Modifier.width(12.dp))
@@ -215,12 +294,21 @@ fun FacilityFormScreen(navController: NavController, title: String, existing: Fa
                     if (existing == null) {
                         vm.addFacility(Facility(0, nombre, tipo, disponible, cap))
                     } else {
-                        vm.updateFacility(existing.copy(nombre = nombre, tipo = tipo, disponible = disponible, capacidad = cap))
+                        vm.updateFacility(
+                            existing.copy(
+                                nombre = nombre,
+                                tipo = tipo,
+                                disponible = disponible,
+                                capacidad = cap
+                            )
+                        )
                     }
                     navController.popBackStack()
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = BlueMain),
-                modifier = Modifier.fillMaxWidth().height(52.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text("Guardar", color = White, fontWeight = FontWeight.Bold)

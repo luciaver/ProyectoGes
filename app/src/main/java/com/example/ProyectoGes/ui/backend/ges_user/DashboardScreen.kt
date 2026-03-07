@@ -1,5 +1,5 @@
-
-
+// DashboardScreen.kt
+import Routes
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -24,7 +24,7 @@ import com.example.ProyectoGes.ui.home.DarkBg
 import com.example.ProyectoGes.ui.home.DarkSurface
 import com.example.ProyectoGes.ui.home.TextSecondary
 import com.example.ProyectoGes.ui.home.White
-import androidx.compose.ui.graphics.vector.Group
+// ✅ ELIMINADO: import androidx.compose.ui.graphics.vector.Group  (no existe / no se usa)
 
 data class DashboardItem(
     val title: String,
@@ -39,10 +39,10 @@ data class DashboardItem(
 fun DashboardScreen(navController: NavController) {
 
     val items = listOf(
-        DashboardItem("Usuarios", "Gestionar usuarios", Icons.Default.Person, Color(0xFF1565C0), Routes.GesUser),
-        DashboardItem("Equipos", "Gestionar equipos", Icons.Default.Group, Color(0xFF0288D1), Routes.GesTeam),
-        DashboardItem("Reservas", "Franjas horarias", Icons.Default.DateRange, Color(0xFF00695C), Routes.GesReservation),
-        DashboardItem("Instalaciones", "Pistas y campos", Icons.Default.Place, Color(0xFF6A1B9A), Routes.GesFacility)
+        DashboardItem("Usuarios",      "Gestionar usuarios",  Icons.Default.Person,    Color(0xFF1565C0), Routes.GesUser),
+        DashboardItem("Equipos",       "Gestionar equipos",   Icons.Default.Group,     Color(0xFF0288D1), Routes.GesTeam),
+        DashboardItem("Reservas",      "Franjas horarias",    Icons.Default.DateRange, Color(0xFF00695C), Routes.GesReservation),
+        DashboardItem("Instalaciones", "Pistas y campos",     Icons.Default.Place,     Color(0xFF6A1B9A), Routes.GesFacility)
     )
 
     Scaffold(
@@ -65,7 +65,6 @@ fun DashboardScreen(navController: NavController) {
                 .padding(padding)
                 .padding(16.dp)
         ) {
-            // Cabecera de bienvenida
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = BlueMain),
@@ -89,7 +88,6 @@ fun DashboardScreen(navController: NavController) {
             Text("Gestión", color = White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Grid 2x2
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -103,7 +101,6 @@ fun DashboardScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Cerrar sesión
             Button(
                 onClick = { navController.popBackStack() },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB71C1C)),

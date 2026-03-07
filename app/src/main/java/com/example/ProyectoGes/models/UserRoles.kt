@@ -1,3 +1,4 @@
+// UserRoles.kt
 package com.example.ProyectoGes.models
 
 object UserRoles {
@@ -9,13 +10,14 @@ object UserRoles {
         "ARBITRO"         to "Árbitro"
     )
 
+    // ✅ AÑADIDO: roles que tienen posición y equipo asociados
+    val rolesConEquipo = setOf("JUGADOR", "ENTRENADOR")
 
     val posiciones = listOf(
         "Portero",
         "Delantero",
         "Centrocampista"
     )
-
 
     val equipos = listOf(
         "Equipo A",
