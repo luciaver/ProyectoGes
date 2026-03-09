@@ -8,12 +8,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import com.example.proyectoGes.database.AppDatabase
 import com.example.proyectoGes.navigation.Navigation
 import com.example.proyectoGes.ui.theme.GesSportTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        AppDatabase.getDatabase(applicationContext)
+
         enableEdgeToEdge()
         setContent {
             GesSportTheme {

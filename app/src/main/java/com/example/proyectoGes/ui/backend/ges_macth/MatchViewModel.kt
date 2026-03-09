@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.*
 import androidx.lifecycle.*
 import com.example.proyectoGes.database.AppDatabase
+import com.example.proyectoGes.models.Match
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 

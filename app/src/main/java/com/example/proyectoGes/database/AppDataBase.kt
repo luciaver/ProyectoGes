@@ -28,27 +28,33 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
-                Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "gessport_db")
+                INSTANCE ?: Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "gessport_db"
+                )
                     .fallbackToDestructiveMigration()
                     .addCallback(object : Callback() {
-                        override fun onCreate(db: SupportSQLiteDatabase) { seed() }
-                        override fun onOpen(db: SupportSQLiteDatabase) { seed() }
-                        private fun seed() {
-                            INSTANCE?.let { CoroutineScope(Dispatchers.IO).launch { populate(it) } }
+                        override fun onCreate(db: SupportSQLiteDatabase) {
+                            super.onCreate(db)
+                            CoroutineScope(Dispatchers.IO).launch {
+                                INSTANCE?.let { populate(it) }
+                            }
                         }
                     })
-                    .build().also { INSTANCE = it }
+                    .build()
+                    .also { INSTANCE = it }
             }
         }
 
         private suspend fun populate(db: AppDatabase) {
             if (db.userDao().getUserCount() == 0) {
                 db.userDao().insertAll(listOf(
-                    User(0, "Admin Deportivo",  "admin@club.es",    "1234", "ADMIN_DEPORTIVO"),
-                    User(0, "Pedro Entrenador", "pedro@club.es",    "1234", "ENTRENADOR"),
-                    User(0, "Ana Jugadora",     "ana@club.es",      "1234", "JUGADOR", posicion = "Delantera", equipo = "Equipo Fútbol"),
-                    User(0, "Carlos Árbitro",   "carlos@club.es",   "1234", "ARBITRO"),
-                    User(0, "Luis Jugador",     "luis@club.es",     "1234", "JUGADOR", posicion = "Portero", equipo = "Equipo Pádel")
+                    User(0, "Admin Deportivo",  "admin@club.es",  "1234", "ADMIN_DEPORTIVO"),
+                    User(0, "Pedro Entrenador", "pedro@club.es",  "1234", "ENTRENADOR"),
+                    User(0, "Ana Jugadora",     "ana@club.es",    "1234", "JUGADOR", posicion = "Delantera", equipo = "Equipo Fútbol"),
+                    User(0, "Carlos Árbitro",   "carlos@club.es", "1234", "ARBITRO"),
+                    User(0, "Luis Jugador",     "luis@club.es",   "1234", "JUGADOR", posicion = "Portero", equipo = "Equipo Pádel")
                 ))
             }
             if (db.facilityDao().getCount() == 0) {
