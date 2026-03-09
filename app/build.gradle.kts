@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.ProyectoGes"
+    namespace = "com.example.proyectoGes"
     compileSdk = 36
 
     defaultConfig {

@@ -1,0 +1,25 @@
+package com.example.proyectoGes.navigation
+
+object Routes {
+    const val Login          = "login"
+    const val Register       = "register"
+    const val Home           = "home"
+    const val AdminPanel     = "dashboard"
+    const val GesUser        = "gesuser"
+    const val AddUser        = "adduser"
+    const val SelectUser     = "selectuser"
+    const val EditUser       = "edituser"
+    const val DeleteUser     = "deleteuser"
+    const val GesTeam        = "gesteam"
+    const val AddTeam        = "addteam"
+    const val EditTeam       = "editteam"
+    const val GesReservation = "gesreservation"
+    const val AddReservation = "addreservation"
+    const val MyReservations = "myreservations"
+    const val GesFacility    = "gesfacility"
+    const val AddFacility    = "addfacility"
+    const val EditFacility   = "editfacility"
+    const val GesMatch       = "gesmatch"
+    const val AddMatch       = "addmatch"
+    const val EditMatch      = "editmatch"
+}
