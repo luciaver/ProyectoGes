@@ -7,11 +7,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.proyectoGes"
+
+    namespace = "com.example.proyectoges"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.ProyectoGes"
+
+        applicationId = "com.example.proyectoges"
         minSdk = 28
         targetSdk = 36
         versionCode = 1
@@ -42,7 +44,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -56,7 +57,6 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("com.google.firebase:firebase-firestore-ktx")
-    //implementation(libs.firebase.firestore.ktx)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.room.common.jvm)

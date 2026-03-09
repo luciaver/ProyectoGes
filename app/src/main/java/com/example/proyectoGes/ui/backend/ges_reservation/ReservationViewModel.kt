@@ -35,7 +35,6 @@ class ReservationViewModel(context: Context) : ViewModel() {
         }
     }
 
-    /** Consulta qué horas están ya ocupadas para una instalación y fecha. */
     fun loadBookedSlots(facilityId: Int, fecha: String) {
         viewModelScope.launch {
             _bookedSlots.value = dao.getBookedSlots(facilityId, fecha)

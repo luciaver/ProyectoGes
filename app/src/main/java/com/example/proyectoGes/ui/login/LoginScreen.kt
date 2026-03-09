@@ -1,11 +1,11 @@
 package com.example.proyectoGes.ui.login
 
 import android.net.Uri
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,16 +14,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.proyectoGes.R
 import com.example.proyectoGes.data.RoomUserRepository
 import com.example.proyectoGes.database.AppDatabase
 import com.example.proyectoGes.domain.LogicLogin
@@ -33,21 +30,21 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(navController: NavController) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
+    val scope   = rememberCoroutineScope()
 
-    val db = remember { AppDatabase.getDatabase(context) }
-    val repo = remember { RoomUserRepository(db.userDao()) }
+    val db    = remember { AppDatabase.getDatabase(context) }
+    val repo  = remember { RoomUserRepository(db.userDao()) }
     val logic = remember { LogicLogin(repo) }
 
-    var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
+    var email        by rememberSaveable { mutableStateOf("") }
+    var password     by rememberSaveable { mutableStateOf("") }
     var errorMessage by rememberSaveable { mutableStateOf<String?>(null) }
 
-    val dark = Color(0xFF1E1E1E)
-    val dark2 = Color(0xFF2C2C2C)
+    val dark   = Color(0xFF1E1E1E)
+    val dark2  = Color(0xFF2C2C2C)
     val purple = Color(0xFF8A2BE2)
-    val blue = Color(0xFF4682B4)
-    val brush = remember { Brush.horizontalGradient(listOf(purple.copy(0.8f), purple, Color.White.copy(0.5f))) }
+    val blue   = Color(0xFF4682B4)
+    val brush  = remember { Brush.horizontalGradient(listOf(purple.copy(0.8f), purple, Color.White.copy(0.5f))) }
 
     Surface(color = dark, modifier = Modifier.fillMaxSize()) {
         Column(
@@ -55,14 +52,34 @@ fun LoginScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            Box(modifier = Modifier.fillMaxWidth().height(220.dp)) {
-                Image(
-                    painter = painterResource(R.drawable.foto_padel),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-                Text("GesSport", color = Color.White, style = MaterialTheme.typography.headlineLarge.copy(fontSize = 50.sp, fontWeight = FontWeight.Black), modifier = Modifier.align(Alignment.Center))
+            // Header con gradiente — sin dependencia de R
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp)
+                    .background(
+                        Brush.verticalGradient(listOf(Color(0xFF3A0070), purple, blue, dark))
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    // Círculo decorativo
+                    Box(
+                        modifier = Modifier
+                            .size(70.dp)
+                            .background(Color.White.copy(alpha = 0.15f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("⚽", fontSize = 36.sp)
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        "GesSport",
+                        color = Color.White,
+                        fontSize = 48.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
             }
 
             Spacer(Modifier.height(48.dp))
@@ -75,11 +92,11 @@ fun LoginScreen(navController: NavController) {
                     label = { Text("Introduce tu email", color = Color(0xFFAAAAAA)) },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = dark2, unfocusedContainerColor = dark2,
-                        focusedBorderColor = Color.Transparent, unfocusedBorderColor = Color.Transparent,
-                        cursorColor = Color.White, focusedTextColor = Color.White, unfocusedTextColor = Color.White
+                        focusedContainerColor   = dark2, unfocusedContainerColor = dark2,
+                        focusedBorderColor      = Color.Transparent, unfocusedBorderColor = Color.Transparent,
+                        cursorColor             = Color.White, focusedTextColor = Color.White, unfocusedTextColor = Color.White
                     ),
-                    shape = RoundedCornerShape(8.dp),
+                    shape    = RoundedCornerShape(8.dp),
                     modifier = Modifier.fillMaxWidth().border(2.dp, brush, RoundedCornerShape(8.dp))
                 )
             }
@@ -95,11 +112,11 @@ fun LoginScreen(navController: NavController) {
                     visualTransformation = PasswordVisualTransformation(),
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = dark2, unfocusedContainerColor = dark2,
-                        focusedBorderColor = Color.Transparent, unfocusedBorderColor = Color.Transparent,
-                        cursorColor = Color.White, focusedTextColor = Color.White, unfocusedTextColor = Color.White
+                        focusedContainerColor   = dark2, unfocusedContainerColor = dark2,
+                        focusedBorderColor      = Color.Transparent, unfocusedBorderColor = Color.Transparent,
+                        cursorColor             = Color.White, focusedTextColor = Color.White, unfocusedTextColor = Color.White
                     ),
-                    shape = RoundedCornerShape(8.dp),
+                    shape    = RoundedCornerShape(8.dp),
                     modifier = Modifier.fillMaxWidth().border(2.dp, brush, RoundedCornerShape(8.dp))
                 )
             }
@@ -125,11 +142,16 @@ fun LoginScreen(navController: NavController) {
                     }
                 },
                 contentPadding = PaddingValues(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                shape = RoundedCornerShape(8.dp),
+                colors   = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                shape    = RoundedCornerShape(8.dp),
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp).height(56.dp)
             ) {
-                Box(modifier = Modifier.fillMaxSize().background(Brush.horizontalGradient(listOf(purple, blue))), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Brush.horizontalGradient(listOf(purple, blue))),
+                    contentAlignment = Alignment.Center
+                ) {
                     Text("Inicia sesión", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             }
