@@ -8,7 +8,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,6 +22,7 @@ import com.example.proyectoGes.models.User
 import com.example.proyectoGes.models.UserRoles
 import com.example.proyectoGes.ui.backend.ges_team.TeamViewModel
 import com.example.proyectoGes.ui.backend.ges_team.TeamViewModelFactory
+import com.example.proyectoGes.ui.backend.ges_team.lightFieldColors
 import com.example.proyectoGes.ui.home.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,228 +30,131 @@ import com.example.proyectoGes.ui.home.*
 fun EditUserScreen(navController: NavHostController, userId: Int) {
     val context   = LocalContext.current
     val viewModel: GesUserViewModel = viewModel(factory = GesUserViewModelFactory(context))
-    val teamVM: TeamViewModel       = viewModel(factory = TeamViewModelFactory(context))
+    val teamVM: TeamViewModel = viewModel(factory = TeamViewModelFactory(context))
     val teams by teamVM.teams.collectAsState()
+    val users by viewModel.users.collectAsState()
 
-    LaunchedEffect(userId) { viewModel.getUserById(userId) }
-    val userToEdit = viewModel.userToEdit
+    val userToEdit = remember(users) { users.find { it.id == userId } }
 
-    var nombre        by rememberSaveable { mutableStateOf("") }
-    var email         by rememberSaveable { mutableStateOf("") }
-    var password      by rememberSaveable { mutableStateOf("") }
-    var edad          by rememberSaveable { mutableStateOf("") }
-    var telefono      by rememberSaveable { mutableStateOf("") }
-    var selectedRole  by rememberSaveable { mutableStateOf("JUGADOR") }
-    var posicion      by rememberSaveable { mutableStateOf(UserRoles.posiciones.first()) }
-    var equipo        by rememberSaveable { mutableStateOf("Sin equipo") }
-    var errorMessage  by rememberSaveable { mutableStateOf<String?>(null) }
-    var isInitialized by rememberSaveable { mutableStateOf(false) }
+    var nombre       by remember { mutableStateOf("") }
+    var email        by remember { mutableStateOf("") }
+    var password     by remember { mutableStateOf("") }
+    var edad         by remember { mutableStateOf("") }
+    var telefono     by remember { mutableStateOf("") }
+    var selectedRole by remember { mutableStateOf("JUGADOR") }
+    var posicion     by remember { mutableStateOf(UserRoles.posiciones.first()) }
+    var equipo       by remember { mutableStateOf("Sin equipo") }
+    var initialized  by remember { mutableStateOf(false) }
+    var error        by remember { mutableStateOf<String?>(null) }
+    var posExpanded  by remember { mutableStateOf(false) }
+    var eqExpanded   by remember { mutableStateOf(false) }
 
-    var posicionExpanded by rememberSaveable { mutableStateOf(false) }
-    var equipoExpanded   by rememberSaveable { mutableStateOf(false) }
-
-    // Inicializar campos cuando se carga el usuario
     LaunchedEffect(userToEdit) {
-        userToEdit?.let {
-            if (!isInitialized) {
-                nombre       = it.nombre
-                email        = it.email
-                password     = it.password
-                edad         = it.edad.toString()
-                telefono     = it.telefono
-                selectedRole = it.rol
-                posicion     = it.posicion ?: UserRoles.posiciones.first()
-                equipo       = it.equipo ?: "Sin equipo"
-                isInitialized = true
-            }
+        if (userToEdit != null && !initialized) {
+            nombre       = userToEdit.nombre
+            email        = userToEdit.email
+            password     = userToEdit.password
+            edad         = userToEdit.edad.toString()
+            telefono     = userToEdit.telefono
+            selectedRole = userToEdit.rol
+            posicion     = userToEdit.posicion ?: UserRoles.posiciones.first()
+            equipo       = userToEdit.equipo ?: "Sin equipo"
+            initialized  = true
         }
     }
 
     val tieneEquipo = UserRoles.rolesConEquipo.contains(selectedRole)
 
+    if (userToEdit == null) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = PrimaryBlue)
+        }
+        return
+    }
+
     Scaffold(
-        containerColor = DarkBg,
+        containerColor = BgColor,
         topBar = {
             TopAppBar(
-                title = { Text("Modificar Usuario", color = White, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = White)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkSurface)
+                title = { Text("Modificar Usuario", color = TextPrimary, fontWeight = FontWeight.Bold) },
+                navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.Default.ArrowBack, null, tint = TextPrimary) } },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = SurfaceColor)
             )
         }
-    ) { paddingValues ->
-
-        if (userToEdit == null) {
-            Box(Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = BlueLight)
-            }
-            return@Scaffold
-        }
-
+    ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 20.dp)
-                .verticalScroll(rememberScrollState()),
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp).verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(Modifier.height(20.dp))
 
             UserFormField("Nombre completo", nombre, { nombre = it })
-            Spacer(modifier = Modifier.height(14.dp))
-
+            Spacer(Modifier.height(14.dp))
             UserFormField("Email", email, { email = it }, KeyboardType.Email)
-            Spacer(modifier = Modifier.height(14.dp))
-
+            Spacer(Modifier.height(14.dp))
             UserFormField("Contraseña", password, { password = it }, isPassword = true)
-            Spacer(modifier = Modifier.height(14.dp))
-
+            Spacer(Modifier.height(14.dp))
             UserFormField("Edad", edad, { edad = it.filter { c -> c.isDigit() } }, KeyboardType.Number)
-            Spacer(modifier = Modifier.height(14.dp))
-
+            Spacer(Modifier.height(14.dp))
             UserFormField("Teléfono", telefono, { telefono = it }, KeyboardType.Phone)
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(Modifier.height(20.dp))
 
-            // Rol
-            Text("Rol", color = White, fontWeight = FontWeight.SemiBold, modifier = Modifier.fillMaxWidth())
-            Spacer(modifier = Modifier.height(6.dp))
+            Text("Rol", color = TextPrimary, fontWeight = FontWeight.SemiBold, modifier = Modifier.fillMaxWidth())
             UserRoles.allRoles.forEach { (roleKey, roleLabel) ->
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    RadioButton(
-                        selected = selectedRole == roleKey,
-                        onClick  = {
-                            selectedRole = roleKey
-                            if (!UserRoles.rolesConEquipo.contains(roleKey)) {
-                                posicion = UserRoles.posiciones.first()
-                                equipo   = "Sin equipo"
-                            }
-                        },
-                        colors = RadioButtonDefaults.colors(selectedColor = BlueLight)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(roleLabel, color = White, fontSize = 15.sp)
+                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(selected = selectedRole == roleKey, onClick = {
+                        selectedRole = roleKey
+                        if (!UserRoles.rolesConEquipo.contains(roleKey)) { posicion = UserRoles.posiciones.first(); equipo = "Sin equipo" }
+                    }, colors = RadioButtonDefaults.colors(selectedColor = PrimaryBlue))
+                    Spacer(Modifier.width(6.dp))
+                    Text(roleLabel, color = TextPrimary, fontSize = 15.sp)
                 }
             }
 
-            // Posición y equipo para roles que aplican
             if (tieneEquipo) {
-                Spacer(modifier = Modifier.height(20.dp))
-
+                Spacer(Modifier.height(20.dp))
                 if (selectedRole == "JUGADOR") {
-                    Text("Posición", color = White, fontWeight = FontWeight.SemiBold, modifier = Modifier.fillMaxWidth())
-                    Spacer(modifier = Modifier.height(6.dp))
-                    ExposedDropdownMenuBox(
-                        expanded         = posicionExpanded,
-                        onExpandedChange = { posicionExpanded = it },
-                        modifier         = Modifier.fillMaxWidth()
-                    ) {
-                        OutlinedTextField(
-                            value         = posicion,
-                            onValueChange = {},
-                            readOnly      = true,
-                            trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = posicionExpanded) },
-                            colors        = darkFieldColors(),
-                            shape         = RoundedCornerShape(8.dp),
-                            modifier      = Modifier.fillMaxWidth().menuAnchor()
-                        )
-                        ExposedDropdownMenu(
-                            expanded         = posicionExpanded,
-                            onDismissRequest = { posicionExpanded = false }
-                        ) {
-                            UserRoles.posiciones.forEach { pos ->
-                                DropdownMenuItem(
-                                    text    = { Text(pos) },
-                                    onClick = { posicion = pos; posicionExpanded = false }
-                                )
-                            }
+                    Text("Posición", color = TextPrimary, fontWeight = FontWeight.SemiBold, modifier = Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(6.dp))
+                    ExposedDropdownMenuBox(expanded = posExpanded, onExpandedChange = { posExpanded = it }, modifier = Modifier.fillMaxWidth()) {
+                        OutlinedTextField(value = posicion, onValueChange = {}, readOnly = true, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(posExpanded) }, colors = lightFieldColors(), shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth().menuAnchor())
+                        ExposedDropdownMenu(expanded = posExpanded, onDismissRequest = { posExpanded = false }) {
+                            UserRoles.posiciones.forEach { pos -> DropdownMenuItem(text = { Text(pos) }, onClick = { posicion = pos; posExpanded = false }) }
                         }
                     }
-                    Spacer(modifier = Modifier.height(14.dp))
+                    Spacer(Modifier.height(14.dp))
                 }
-
-                Text("Equipo", color = White, fontWeight = FontWeight.SemiBold, modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(6.dp))
+                Text("Equipo", color = TextPrimary, fontWeight = FontWeight.SemiBold, modifier = Modifier.fillMaxWidth())
+                Spacer(Modifier.height(6.dp))
                 val teamOptions = listOf("Sin equipo") + teams.map { it.nombre }
-                ExposedDropdownMenuBox(
-                    expanded         = equipoExpanded,
-                    onExpandedChange = { equipoExpanded = it },
-                    modifier         = Modifier.fillMaxWidth()
-                ) {
-                    OutlinedTextField(
-                        value         = equipo,
-                        onValueChange = {},
-                        readOnly      = true,
-                        trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = equipoExpanded) },
-                        colors        = darkFieldColors(),
-                        shape         = RoundedCornerShape(8.dp),
-                        modifier      = Modifier.fillMaxWidth().menuAnchor()
-                    )
-                    ExposedDropdownMenu(
-                        expanded         = equipoExpanded,
-                        onDismissRequest = { equipoExpanded = false }
-                    ) {
-                        teamOptions.forEach { eq ->
-                            DropdownMenuItem(
-                                text    = { Text(eq) },
-                                onClick = { equipo = eq; equipoExpanded = false }
-                            )
-                        }
+                ExposedDropdownMenuBox(expanded = eqExpanded, onExpandedChange = { eqExpanded = it }, modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(value = equipo, onValueChange = {}, readOnly = true, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(eqExpanded) }, colors = lightFieldColors(), shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth().menuAnchor())
+                    ExposedDropdownMenu(expanded = eqExpanded, onDismissRequest = { eqExpanded = false }) {
+                        teamOptions.forEach { eq -> DropdownMenuItem(text = { Text(eq) }, onClick = { equipo = eq; eqExpanded = false }) }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
-
-            errorMessage?.let {
-                Text(it, color = Color(0xFFEF5350), fontSize = 13.sp)
-                Spacer(modifier = Modifier.height(8.dp))
-            }
+            Spacer(Modifier.height(28.dp))
+            error?.let { Text(it, color = DangerRed, fontSize = 13.sp); Spacer(Modifier.height(8.dp)) }
 
             Button(
                 onClick = {
                     when {
-                        nombre.isBlank() || email.isBlank() || password.isBlank() ->
-                            errorMessage = "Nombre, email y contraseña son obligatorios"
-                        edad.isBlank() ->
-                            errorMessage = "La edad es obligatoria"
-                        edad.toIntOrNull() == null || edad.toInt() < 1 || edad.toInt() > 120 ->
-                            errorMessage = "Introduce una edad válida (1–120)"
-                        telefono.isBlank() ->
-                            errorMessage = "El teléfono es obligatorio"
+                        nombre.isBlank() || email.isBlank() || password.isBlank() -> error = "Nombre, email y contraseña son obligatorios"
+                        edad.toIntOrNull() == null || edad.toInt() < 1 -> error = "Introduce una edad válida"
+                        telefono.isBlank() -> error = "El teléfono es obligatorio"
                         else -> {
-                            errorMessage = null
-                            viewModel.updateUser(
-                                User(
-                                    id       = userId,
-                                    nombre   = nombre,
-                                    email    = email,
-                                    password = password,
-                                    rol      = selectedRole,
-                                    edad     = edad.toInt(),
-                                    telefono = telefono,
-                                    posicion = if (selectedRole == "JUGADOR") posicion else null,
-                                    equipo   = if (tieneEquipo && equipo != "Sin equipo") equipo else null
-                                )
-                            )
+                            viewModel.updateUser(User(userId, nombre, email, password, selectedRole, edad.toInt(), telefono, if (selectedRole == "JUGADOR") posicion else null, if (tieneEquipo && equipo != "Sin equipo") equipo else null))
                             navController.popBackStack()
                         }
                     }
                 },
-                colors   = ButtonDefaults.buttonColors(containerColor = BlueMain),
-                shape    = RoundedCornerShape(8.dp),
-                modifier = Modifier.fillMaxWidth().height(54.dp)
-            ) {
-                Text("Actualizar Usuario", color = White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            }
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth().height(54.dp)
+            ) { Text("Actualizar Usuario", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold) }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(Modifier.height(32.dp))
         }
     }
 }

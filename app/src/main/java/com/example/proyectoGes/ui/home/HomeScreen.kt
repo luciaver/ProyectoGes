@@ -27,13 +27,23 @@ import com.example.proyectoGes.ui.backend.ges_reservation.ReservationViewModelFa
 import com.example.proyectoGes.ui.backend.ges_team.TeamViewModel
 import com.example.proyectoGes.ui.backend.ges_team.TeamViewModelFactory
 
-val DarkBg        = Color(0xFF0D0D0D)
-val DarkSurface   = Color(0xFF1A1A2E)
-val CardColor     = Color(0xFF16213E)
-val BlueMain      = Color(0xFF1565C0)
-val BlueLight     = Color(0xFF2196F3)
-val White         = Color(0xFFFFFFFF)
-val TextSecondary = Color(0xFFB0BEC5)
+val BgColor      = Color(0xFFF0F4FF)
+val SurfaceColor = Color(0xFFFFFFFF)
+val CardBg       = Color(0xFFE8EEFF)
+val PrimaryBlue  = Color(0xFF2D5BE3)
+val AccentIndigo = Color(0xFF4F46E5)
+val TextPrimary  = Color(0xFF1A1F36)
+val TextMuted    = Color(0xFF6B7280)
+val DangerRed    = Color(0xFFEF4444)
+val SuccessGreen = Color(0xFF10B981)
+
+val DarkBg        = BgColor
+val DarkSurface   = SurfaceColor
+val CardColor     = CardBg
+val BlueMain      = PrimaryBlue
+val BlueLight     = AccentIndigo
+val White         = SurfaceColor
+val TextSecondary = TextMuted
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,25 +72,29 @@ fun HomeScreen(
     val myTeam = allTeams.find { it.nombre == equipo }
 
     Scaffold(
-        containerColor = DarkBg,
+        containerColor = BgColor,
         topBar = {
             TopAppBar(
                 title = {
                     Column {
-                        Text("GesSport", color = BlueLight, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                        Text(getRoleLabel(rol), color = TextSecondary, fontSize = 12.sp)
+                        Text("GesSport", color = PrimaryBlue, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Text(getRoleLabel(rol), color = TextMuted, fontSize = 12.sp)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkSurface)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = SurfaceColor)
             )
         },
         bottomBar = {
-            NavigationBar(containerColor = DarkSurface) {
+            NavigationBar(containerColor = SurfaceColor) {
                 NavigationBarItem(
                     selected = true, onClick = {},
                     icon = { Icon(Icons.Default.Home, null) },
                     label = { Text("Inicio") },
-                    colors = NavigationBarItemDefaults.colors(selectedIconColor = BlueLight, selectedTextColor = BlueLight, unselectedIconColor = TextSecondary)
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = PrimaryBlue,
+                        selectedTextColor = PrimaryBlue,
+                        unselectedIconColor = TextMuted
+                    )
                 )
                 if (rol != "ARBITRO") {
                     NavigationBarItem(
@@ -91,14 +105,14 @@ fun HomeScreen(
                         },
                         icon = { Icon(Icons.Default.DateRange, null) },
                         label = { Text("Reservar") },
-                        colors = NavigationBarItemDefaults.colors(unselectedIconColor = TextSecondary, unselectedTextColor = TextSecondary)
+                        colors = NavigationBarItemDefaults.colors(unselectedIconColor = TextMuted)
                     )
                 }
                 NavigationBarItem(
                     selected = false, onClick = { navController.popBackStack() },
                     icon = { Icon(Icons.Default.ExitToApp, null) },
                     label = { Text("Salir") },
-                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = TextSecondary, unselectedTextColor = TextSecondary)
+                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = TextMuted)
                 )
             }
         }
@@ -112,44 +126,38 @@ fun HomeScreen(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = BlueMain),
+                    colors = CardDefaults.cardColors(containerColor = PrimaryBlue),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Person, null, tint = White, modifier = Modifier.size(48.dp))
+                        Icon(Icons.Default.Person, null, tint = Color.White, modifier = Modifier.size(48.dp))
                         Spacer(Modifier.width(16.dp))
                         Column {
-                            Text("¡Hola, ${nombre ?: "Usuario"}!", color = White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                            Text(getRoleLabel(rol), color = White.copy(alpha = 0.8f), fontSize = 14.sp)
+                            Text("¡Hola, ${nombre ?: "Usuario"}!", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                            Text(getRoleLabel(rol), color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
                         }
                     }
                 }
             }
 
             if (rol == "ARBITRO") {
-                item { Text("Partidos a arbitrar", color = White, fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+                item { SectionLabel("Partidos a arbitrar") }
                 if (matches.isEmpty()) {
-                    item {
-                        Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = CardColor), shape = RoundedCornerShape(12.dp)) {
-                            Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                                Text("No tienes partidos asignados", color = TextSecondary)
-                            }
-                        }
-                    }
+                    item { EmptyCard("No tienes partidos asignados") }
                 } else {
                     items(matches) { match ->
-                        Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = CardColor), shape = RoundedCornerShape(12.dp)) {
+                        Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = CardBg), shape = RoundedCornerShape(12.dp)) {
                             Column(modifier = Modifier.padding(16.dp)) {
-                                Text("${match.equipo1} vs ${match.equipo2}", color = White, fontWeight = FontWeight.Bold)
-                                Text("${match.fecha} - ${match.hora}", color = TextSecondary, fontSize = 13.sp)
-                                Text(match.resultado, color = BlueLight, fontSize = 12.sp)
+                                Text("${match.equipo1} vs ${match.equipo2}", color = TextPrimary, fontWeight = FontWeight.Bold)
+                                Text("${match.fecha} - ${match.hora}", color = TextMuted, fontSize = 13.sp)
+                                Text(match.resultado, color = PrimaryBlue, fontSize = 12.sp)
                             }
                         }
                     }
                 }
             } else {
                 item {
-                    Text("Acciones rápidas", color = White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    SectionLabel("Acciones rápidas")
                     Spacer(Modifier.height(8.dp))
                     val enc = Uri.encode(nombre ?: "Usuario")
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -169,69 +177,54 @@ fun HomeScreen(
 
                 if (equipo != null) {
                     item {
-                        Text("Mi Equipo", color = White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        SectionLabel("Mi Equipo")
                         Spacer(Modifier.height(8.dp))
-                        Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = CardColor), shape = RoundedCornerShape(12.dp)) {
+                        Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = CardBg), shape = RoundedCornerShape(12.dp)) {
                             Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Group, null, tint = BlueLight, modifier = Modifier.size(40.dp))
+                                Icon(Icons.Default.Group, null, tint = PrimaryBlue, modifier = Modifier.size(40.dp))
                                 Spacer(Modifier.width(12.dp))
                                 Column {
-                                    Text(myTeam?.nombre ?: equipo, color = White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                    myTeam?.let {
-                                        Text(it.deporte, color = BlueLight, fontSize = 13.sp)
-                                        Text("${it.numJugadores} jugadores", color = TextSecondary, fontSize = 12.sp)
-                                    }
+                                    Text(myTeam?.nombre ?: equipo, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                    myTeam?.let { Text(it.deporte, color = PrimaryBlue, fontSize = 13.sp) }
                                 }
                             }
                         }
                     }
                 }
 
-                item { Text("Mis próximas reservas", color = White, fontWeight = FontWeight.Bold, fontSize = 16.sp) }
-
+                item { SectionLabel("Mis próximas reservas") }
                 if (reservations.isEmpty()) {
-                    item {
-                        Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = CardColor), shape = RoundedCornerShape(12.dp)) {
-                            Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                                Text("No tienes reservas", color = TextSecondary)
-                            }
-                        }
-                    }
+                    item { EmptyCard("No tienes reservas") }
                 } else {
                     items(reservations.take(5)) { res ->
-                        Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = CardColor), shape = RoundedCornerShape(12.dp)) {
+                        Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = CardBg), shape = RoundedCornerShape(12.dp)) {
                             Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.DateRange, null, tint = BlueLight, modifier = Modifier.size(36.dp))
+                                Icon(Icons.Default.DateRange, null, tint = PrimaryBlue, modifier = Modifier.size(36.dp))
                                 Spacer(Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text(res.instalacionNombre, color = White, fontWeight = FontWeight.Bold)
-                                    Text(res.fecha, color = TextSecondary, fontSize = 13.sp)
-                                    Text("${res.horaInicio} - ${res.horaFin}", color = BlueLight, fontSize = 13.sp)
+                                    Text(res.instalacionNombre, color = TextPrimary, fontWeight = FontWeight.Bold)
+                                    Text(res.fecha, color = TextMuted, fontSize = 13.sp)
+                                    Text("${res.horaInicio} - ${res.horaFin}", color = PrimaryBlue, fontSize = 13.sp)
+                                    Text("%.0f€".format(res.precio), color = SuccessGreen, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                                 }
                                 TextButton(onClick = { reservationVM.deleteReservation(res.id) }) {
-                                    Text("Cancelar", color = Color(0xFFEF5350), fontSize = 12.sp)
+                                    Text("Cancelar", color = DangerRed, fontSize = 12.sp)
                                 }
                             }
                         }
                     }
                 }
 
-                item { Text("Mis partidos", color = White, fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+                item { SectionLabel("Mis partidos") }
                 if (matches.isEmpty()) {
-                    item {
-                        Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = CardColor), shape = RoundedCornerShape(12.dp)) {
-                            Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                                Text("No hay partidos programados", color = TextSecondary)
-                            }
-                        }
-                    }
+                    item { EmptyCard("No hay partidos programados") }
                 } else {
                     items(matches) { match ->
-                        Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = CardColor), shape = RoundedCornerShape(12.dp)) {
+                        Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = CardBg), shape = RoundedCornerShape(12.dp)) {
                             Column(modifier = Modifier.padding(16.dp)) {
-                                Text("${match.equipo1} vs ${match.equipo2}", color = White, fontWeight = FontWeight.Bold)
-                                Text("${match.fecha} - ${match.hora}", color = TextSecondary, fontSize = 13.sp)
-                                Text(match.resultado, color = BlueLight, fontSize = 12.sp)
+                                Text("${match.equipo1} vs ${match.equipo2}", color = TextPrimary, fontWeight = FontWeight.Bold)
+                                Text("${match.fecha} - ${match.hora}", color = TextMuted, fontSize = 13.sp)
+                                Text(match.resultado, color = PrimaryBlue, fontSize = 12.sp)
                             }
                         }
                     }
@@ -248,12 +241,26 @@ fun HomeScreen(
 }
 
 @Composable
+fun SectionLabel(text: String) {
+    Text(text, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+}
+
+@Composable
+fun EmptyCard(msg: String) {
+    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = CardBg), shape = RoundedCornerShape(12.dp)) {
+        Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+            Text(msg, color = TextMuted)
+        }
+    }
+}
+
+@Composable
 fun QuickAction(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Card(modifier = modifier, colors = CardDefaults.cardColors(containerColor = CardColor), shape = RoundedCornerShape(12.dp), onClick = onClick) {
+    Card(modifier = modifier, colors = CardDefaults.cardColors(containerColor = CardBg), shape = RoundedCornerShape(12.dp), onClick = onClick) {
         Column(modifier = Modifier.fillMaxWidth().padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(icon, null, tint = BlueLight, modifier = Modifier.size(28.dp))
+            Icon(icon, null, tint = PrimaryBlue, modifier = Modifier.size(28.dp))
             Spacer(Modifier.height(4.dp))
-            Text(label, color = White, fontSize = 11.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            Text(label, color = TextPrimary, fontSize = 11.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
     }
 }
@@ -262,26 +269,26 @@ fun QuickAction(icon: ImageVector, label: String, modifier: Modifier = Modifier,
 fun IncidenciaCard() {
     var texto   by remember { mutableStateOf("") }
     var enviado by remember { mutableStateOf(false) }
-    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = CardColor), shape = RoundedCornerShape(12.dp)) {
+    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = CardBg), shape = RoundedCornerShape(12.dp)) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Warning, null, tint = Color(0xFFFFA726))
+                Icon(Icons.Default.Warning, null, tint = Color(0xFFF59E0B))
                 Spacer(Modifier.width(8.dp))
-                Text("Notificar incidencia", color = White, fontWeight = FontWeight.Bold)
+                Text("Notificar incidencia", color = TextPrimary, fontWeight = FontWeight.Bold)
             }
             Spacer(Modifier.height(8.dp))
             if (enviado) {
-                Text("✓ Incidencia enviada", color = Color(0xFF4CAF50))
+                Text("✓ Incidencia enviada", color = SuccessGreen)
             } else {
                 OutlinedTextField(
                     value = texto, onValueChange = { texto = it },
-                    placeholder = { Text("Describe la incidencia...", color = TextSecondary) },
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = BlueLight, unfocusedBorderColor = TextSecondary, focusedTextColor = White, unfocusedTextColor = White),
+                    placeholder = { Text("Describe la incidencia...", color = TextMuted) },
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = TextMuted, focusedTextColor = TextPrimary, unfocusedTextColor = TextPrimary),
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(8.dp))
-                Button(onClick = { if (texto.isNotBlank()) enviado = true }, colors = ButtonDefaults.buttonColors(containerColor = BlueMain), modifier = Modifier.fillMaxWidth()) {
-                    Text("Enviar", color = White)
+                Button(onClick = { if (texto.isNotBlank()) enviado = true }, colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue), modifier = Modifier.fillMaxWidth()) {
+                    Text("Enviar", color = Color.White)
                 }
             }
         }

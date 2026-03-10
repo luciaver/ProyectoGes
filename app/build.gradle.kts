@@ -8,12 +8,11 @@ plugins {
 
 android {
 
-    namespace = "com.example.proyectoges"
+    namespace = "com.example.proyectoGes"
     compileSdk = 36
 
     defaultConfig {
-
-        applicationId = "com.example.proyectoges"
+        applicationId = "com.example.proyectoGes"
         minSdk = 28
         targetSdk = 36
         versionCode = 1
@@ -54,12 +53,10 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
-    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-    implementation("com.google.firebase:firebase-firestore-ktx")
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.ui)
-    implementation(libs.androidx.room.common.jvm)
+    implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.ui)

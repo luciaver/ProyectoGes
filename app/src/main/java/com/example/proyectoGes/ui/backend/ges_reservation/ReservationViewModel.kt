@@ -18,9 +18,13 @@ class ReservationViewModel(context: Context) : ViewModel() {
     private val _reservations = MutableStateFlow<List<Reservation>>(emptyList())
     val reservations: StateFlow<List<Reservation>> = _reservations.asStateFlow()
 
-    // Horas ya reservadas para la instalación + fecha seleccionadas
-    private val _bookedSlots = MutableStateFlow<List<String>>(emptyList())
-    val bookedSlots: StateFlow<List<String>> = _bookedSlots.asStateFlow()
+    /** Lista de reservas existentes para la instalación+fecha seleccionadas */
+    private val _existingReservations = MutableStateFlow<List<Reservation>>(emptyList())
+    val existingReservations: StateFlow<List<Reservation>> = _existingReservations.asStateFlow()
+
+    /** Resultado de la última comprobación de solapamiento */
+    private val _overlapError = MutableStateFlow<String?>(null)
+    val overlapError: StateFlow<String?> = _overlapError.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -35,14 +39,38 @@ class ReservationViewModel(context: Context) : ViewModel() {
         }
     }
 
-    fun loadBookedSlots(facilityId: Int, fecha: String) {
+    /** Carga las reservas existentes para mostrar franjas ocupadas */
+    fun loadReservationsForFacilityAndDate(facilityId: Int, fecha: String) {
         viewModelScope.launch {
-            _bookedSlots.value = dao.getBookedSlots(facilityId, fecha)
+            _existingReservations.value = dao.getByFacilityAndDate(facilityId, fecha)
         }
     }
 
-    fun addReservation(reservation: Reservation) {
-        viewModelScope.launch { dao.insert(reservation) }
+    /**
+     * Comprueba solapamiento y guarda la reserva si no hay conflicto.
+     * Llama a [onSuccess] si se guardó, o a [onError] con el mensaje de error.
+     */
+    fun addReservationWithOverlapCheck(
+        reservation: Reservation,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            val overlaps = dao.getOverlapping(
+                facilityId = reservation.instalacionId,
+                fecha      = reservation.fecha,
+                horaInicio = reservation.horaInicio,
+                horaFin    = reservation.horaFin,
+                excludeId  = 0
+            )
+            if (overlaps.isNotEmpty()) {
+                val conflicto = overlaps.first()
+                onError("Horario ocupado: ${conflicto.userName} reservó de ${conflicto.horaInicio} a ${conflicto.horaFin}")
+            } else {
+                dao.insert(reservation)
+                onSuccess()
+            }
+        }
     }
 
     fun deleteReservation(id: Int) {

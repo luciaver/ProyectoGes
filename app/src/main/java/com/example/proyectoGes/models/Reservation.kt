@@ -11,8 +11,9 @@ data class Reservation(
     val userName: String,
     val instalacionId: Int,
     val instalacionNombre: String,
-    val fecha: String,      // "dd/MM/yyyy"
-    val horaInicio: String, // "HH:mm"
-    val horaFin: String,    // "HH:mm"
-    val tipo: String = "individual" // "individual" o "equipo"
+    val fecha: String,
+    val horaInicio: String,
+    val horaFin: String,
+    val precio: Double = 0.0,
+    val tipo: String = "individual"
 )

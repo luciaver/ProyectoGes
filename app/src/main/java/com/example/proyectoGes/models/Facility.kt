@@ -8,7 +8,6 @@ data class Facility(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val nombre: String,
-    val tipo: String,      // "Pista de Padel", "Pista de Tenis", "Campo de Futbol", etc.
-    val disponible: Boolean = true,
-    val capacidad: Int = 4
+    val tipo: String,
+    val disponible: Boolean = true
 )

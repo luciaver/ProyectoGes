@@ -22,9 +22,31 @@ interface ReservationDao {
     @Query("SELECT COUNT(*) FROM reservas")
     suspend fun getCount(): Int
 
-    // Devuelve las horas ya reservadas para una instalación y fecha concretas
-    @Query("SELECT horaInicio FROM reservas WHERE instalacionId = :facilityId AND fecha = :fecha")
-    suspend fun getBookedSlots(facilityId: Int, fecha: String): List<String>
+    /**
+     * Detecta solapamientos: devuelve las reservas de una instalación en una fecha
+     * cuyo intervalo [horaInicio, horaFin) se solapa con el intervalo pedido.
+     * Dos intervalos [a,b) y [c,d) se solapan si a < d AND c < b.
+     * Excluye la propia reserva si se está editando (excludeId = 0 para nuevas).
+     */
+    @Query("""
+        SELECT * FROM reservas
+        WHERE instalacionId = :facilityId
+          AND fecha = :fecha
+          AND id != :excludeId
+          AND horaInicio < :horaFin
+          AND horaFin   > :horaInicio
+    """)
+    suspend fun getOverlapping(
+        facilityId: Int,
+        fecha: String,
+        horaInicio: String,
+        horaFin: String,
+        excludeId: Int = 0
+    ): List<Reservation>
+
+    /** Devuelve todas las reservas de una instalación en una fecha (para mostrar ocupadas) */
+    @Query("SELECT * FROM reservas WHERE instalacionId = :facilityId AND fecha = :fecha")
+    suspend fun getByFacilityAndDate(facilityId: Int, fecha: String): List<Reservation>
 
     @Update
     suspend fun update(reservation: Reservation): Int

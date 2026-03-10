@@ -20,434 +20,295 @@ import androidx.navigation.NavController
 import com.example.proyectoGes.models.Reservation
 import com.example.proyectoGes.ui.backend.ges_facility.FacilityViewModel
 import com.example.proyectoGes.ui.backend.ges_facility.FacilityViewModelFactory
+import com.example.proyectoGes.ui.backend.ges_reservation.ReservationViewModel
+import com.example.proyectoGes.ui.backend.ges_reservation.ReservationViewModelFactory
+
+import com.example.proyectoGes.ui.backend.ges_match.DropdownSelector
 import com.example.proyectoGes.ui.home.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-// ──────────────────────────────────────────────────────────────────────────────
-// GESTIÓN DE RESERVAS — solo admin: lista + eliminar (sin botón añadir)
-// ──────────────────────────────────────────────────────────────────────────────
+private const val PRECIO_POR_HORA = 10.0
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GesReservationScreen(navController: NavController) {
     val context = LocalContext.current
     val vm: ReservationViewModel = viewModel(factory = ReservationViewModelFactory(context))
     val reservations by vm.reservations.collectAsState()
-
-    var showDelete by remember { mutableStateOf(false) }
-    var toDelete   by remember { mutableStateOf<Reservation?>(null) }
+    var toDelete by remember { mutableStateOf<Reservation?>(null) }
 
     Scaffold(
-        containerColor = DarkBg,
+        containerColor = BgColor,
         topBar = {
             TopAppBar(
-                title = { Text("Reservas", color = White, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = null, tint = White)
-                    }
-                },
-                // Admin NO tiene botón "+" aquí
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkSurface)
+                title = { Text("Reservas", color = TextPrimary, fontWeight = FontWeight.Bold) },
+                navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.Default.ArrowBack, null, tint = TextPrimary) } },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = SurfaceColor)
             )
         }
     ) { padding ->
         if (reservations.isEmpty()) {
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text("No hay reservas registradas", color = TextSecondary)
+                Text("No hay reservas", color = TextMuted)
             }
         } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
+            LazyColumn(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(reservations) { res ->
-                    ReservationAdminCard(
-                        reservation = res,
-                        onDelete    = { toDelete = res; showDelete = true }
-                    )
+                    ReservationCard(reservation = res, onDelete = { toDelete = res })
                 }
             }
         }
-
-        if (showDelete && toDelete != null) {
+        toDelete?.let { r ->
             AlertDialog(
-                onDismissRequest = { showDelete = false },
+                onDismissRequest = { toDelete = null },
                 title = { Text("Cancelar reserva") },
-                text  = {
-                    Text("¿Cancelar reserva de ${toDelete!!.userName} el ${toDelete!!.fecha} a las ${toDelete!!.horaInicio}?")
-                },
-                confirmButton = {
-                    Button(
-                        onClick = { vm.deleteReservation(toDelete!!.id); showDelete = false },
-                        colors  = ButtonDefaults.buttonColors(containerColor = Color(0xFFB71C1C))
-                    ) { Text("Cancelar reserva") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDelete = false }) { Text("Volver") }
-                },
-                containerColor = DarkSurface
+                text  = { Text("¿Cancelar reserva de ${r.userName} el ${r.fecha}?") },
+                confirmButton = { Button(onClick = { vm.deleteReservation(r.id); toDelete = null }, colors = ButtonDefaults.buttonColors(containerColor = DangerRed)) { Text("Cancelar reserva") } },
+                dismissButton = { TextButton(onClick = { toDelete = null }) { Text("Volver") } },
+                containerColor = SurfaceColor
             )
         }
     }
 }
 
 @Composable
-fun ReservationAdminCard(reservation: Reservation, onDelete: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors   = CardDefaults.cardColors(containerColor = CardColor),
-        shape    = RoundedCornerShape(12.dp)
-    ) {
+fun ReservationCard(reservation: Reservation, onDelete: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = CardBg), shape = RoundedCornerShape(12.dp)) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.DateRange, contentDescription = null, tint = BlueLight, modifier = Modifier.size(36.dp))
-            Spacer(modifier = Modifier.width(12.dp))
+            Icon(Icons.Default.DateRange, null, tint = PrimaryBlue, modifier = Modifier.size(36.dp))
+            Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(reservation.instalacionNombre, color = White, fontWeight = FontWeight.Bold)
-                Text(reservation.userName, color = TextSecondary, fontSize = 13.sp)
-                Text(
-                    "${reservation.fecha}  ${reservation.horaInicio} – ${reservation.horaFin}",
-                    color = BlueLight, fontSize = 12.sp
-                )
+                Text(reservation.instalacionNombre, color = TextPrimary, fontWeight = FontWeight.Bold)
+                Text(reservation.userName, color = TextMuted, fontSize = 13.sp)
+                Text("${reservation.fecha}  ${reservation.horaInicio} – ${reservation.horaFin}", color = PrimaryBlue, fontSize = 12.sp)
+                Text("%.0f€".format(reservation.precio), color = SuccessGreen, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
             }
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = null, tint = Color(0xFFEF5350))
-            }
+            IconButton(onClick = onDelete) { Icon(Icons.Default.Delete, null, tint = DangerRed) }
         }
     }
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// AÑADIR RESERVA — con calendario y franja horaria
-// ──────────────────────────────────────────────────────────────────────────────
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddReservationScreen(
-    navController: NavController,
-    userId: Int = 0,
-    userName: String = "Usuario"
-) {
+fun AddReservationScreen(navController: NavController, userId: Int = 0, userName: String = "Usuario") {
     val context    = LocalContext.current
-    val vm: ReservationViewModel  = viewModel(factory = ReservationViewModelFactory(context))
-    val facilityVm: FacilityViewModel = viewModel(factory = FacilityViewModelFactory(context))
+    val vm         = viewModel<ReservationViewModel>(factory = ReservationViewModelFactory(context))
+    val facilityVm = viewModel<FacilityViewModel>(factory = FacilityViewModelFactory(context))
 
-    val facilities  by facilityVm.facilities.collectAsState()
-    val bookedSlots by vm.bookedSlots.collectAsState()
+    val facilities           by facilityVm.facilities.collectAsState()
+    val existingReservations by vm.existingReservations.collectAsState()
 
-    // Estado de selección
+    val allHours = (8..22).map { h -> String.format("%02d:00", h) }
+
     var selectedFacilityId   by remember { mutableIntStateOf(0) }
     var selectedFacilityName by remember { mutableStateOf("") }
-    var selectedDate         by remember { mutableStateOf("") }     // "dd/MM/yyyy"
-    var selectedSlot         by remember { mutableStateOf("") }     // "HH:00"
+    var selectedDate         by remember { mutableStateOf("") }
+    var selectedStart        by remember { mutableStateOf("") }
+    var selectedEnd          by remember { mutableStateOf("") }
     var error                by remember { mutableStateOf<String?>(null) }
-
-    // Calendario
     var showCalendar         by remember { mutableStateOf(false) }
-    val datePickerState      = rememberDatePickerState(
+
+    val precio = if (selectedStart.isNotBlank() && selectedEnd.isNotBlank()) {
+        val horas = (timeToMinutes(selectedEnd) - timeToMinutes(selectedStart)) / 60.0
+        horas * PRECIO_POR_HORA
+    } else 0.0
+
+    val dateState = rememberDatePickerState(
         initialDisplayMode = DisplayMode.Picker,
         selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                // Solo fechas desde hoy en adelante
-                return utcTimeMillis >= System.currentTimeMillis() - 86_400_000L
+                val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+                cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0)
+                cal.set(Calendar.SECOND, 0); cal.set(Calendar.MILLISECOND, 0)
+                return utcTimeMillis >= cal.timeInMillis
             }
         }
     )
 
-    val timeSlots = (10..21).map { h -> String.format("%02d:00", h) }
-
-    // Recargar slots al cambiar instalación o fecha
     LaunchedEffect(selectedFacilityId, selectedDate) {
         if (selectedFacilityId != 0 && selectedDate.isNotBlank()) {
-            vm.loadBookedSlots(selectedFacilityId, selectedDate)
-            selectedSlot = "" // reset slot al cambiar fecha/pista
+            vm.loadReservationsForFacilityAndDate(selectedFacilityId, selectedDate)
+            selectedStart = ""; selectedEnd = ""
         }
     }
 
-    // Diálogo de calendario
     if (showCalendar) {
         DatePickerDialog(
             onDismissRequest = { showCalendar = false },
             confirmButton = {
                 TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let { millis ->
+                    dateState.selectedDateMillis?.let { millis ->
                         val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                        sdf.timeZone = TimeZone.getTimeZone("UTC")
                         selectedDate = sdf.format(Date(millis))
                     }
                     showCalendar = false
-                }) { Text("OK", color = BlueLight) }
+                }) { Text("OK", color = PrimaryBlue) }
             },
-            dismissButton = {
-                TextButton(onClick = { showCalendar = false }) { Text("Cancelar", color = TextSecondary) }
-            },
-            colors = DatePickerDefaults.colors(containerColor = DarkSurface)
+            dismissButton = { TextButton(onClick = { showCalendar = false }) { Text("Cancelar") } },
+            colors = DatePickerDefaults.colors(containerColor = SurfaceColor)
         ) {
-            DatePicker(
-                state = datePickerState,
-                colors = DatePickerDefaults.colors(
-                    containerColor          = DarkSurface,
-                    titleContentColor       = White,
-                    headlineContentColor    = White,
-                    weekdayContentColor     = TextSecondary,
-                    selectedDayContainerColor = BlueMain,
-                    selectedDayContentColor   = White,
-                    todayContentColor         = BlueLight,
-                    todayDateBorderColor      = BlueLight
-                )
-            )
+            DatePicker(state = dateState, colors = DatePickerDefaults.colors(
+                containerColor = SurfaceColor, selectedDayContainerColor = PrimaryBlue,
+                selectedDayContentColor = Color.White, todayDateBorderColor = PrimaryBlue, todayContentColor = PrimaryBlue
+            ))
         }
     }
 
     Scaffold(
-        containerColor = DarkBg,
+        containerColor = BgColor,
         topBar = {
             TopAppBar(
-                title = { Text("Nueva Reserva", color = White, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = null, tint = White)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkSurface)
+                title = { Text("Nueva Reserva", color = TextPrimary, fontWeight = FontWeight.Bold) },
+                navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.Default.ArrowBack, null, tint = TextPrimary) } },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = SurfaceColor)
             )
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
+        LazyColumn(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
 
-            // ── Seleccionar instalación ───────────────────────────────────
             item {
-                SectionTitle("Instalación")
-                facilities.forEach { facility ->
-                    val isAvailable = facility.disponible
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 2.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected  = selectedFacilityId == facility.id,
-                            onClick   = {
-                                if (isAvailable) {
-                                    selectedFacilityId   = facility.id
-                                    selectedFacilityName = facility.nombre
-                                }
-                            },
-                            enabled = isAvailable,
-                            colors  = RadioButtonDefaults.colors(selectedColor = BlueLight)
-                        )
-                        Column {
-                            Text(
-                                facility.nombre,
-                                color    = if (isAvailable) White else TextSecondary,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                facility.tipo,
-                                color    = TextSecondary,
-                                fontSize = 12.sp
-                            )
-                            if (!isAvailable) {
-                                Text(
-                                    "No disponible",
-                                    color    = Color(0xFFEF5350),
-                                    fontSize = 11.sp
-                                )
-                            }
-                        }
-                    }
+                Text("Instalación", color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(6.dp))
+                DropdownSelector(
+                    options = facilities.filter { it.disponible }.map { it.nombre },
+                    selected = selectedFacilityName,
+                    placeholder = "Seleccionar instalación"
+                ) { nombre ->
+                    selectedFacilityName = nombre
+                    selectedFacilityId = facilities.find { it.nombre == nombre }?.id ?: 0
                 }
             }
 
-            // ── Seleccionar fecha con calendario ──────────────────────────
             item {
-                SectionTitle("Fecha")
-                Button(
-                    onClick  = { showCalendar = true },
-                    colors   = ButtonDefaults.buttonColors(containerColor = CardColor),
-                    shape    = RoundedCornerShape(10.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Icons.Default.DateRange, contentDescription = null, tint = BlueLight)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text  = if (selectedDate.isBlank()) "Seleccionar fecha" else selectedDate,
-                        color = if (selectedDate.isBlank()) TextSecondary else White,
-                        fontSize = 15.sp
-                    )
+                Text("Fecha", color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(6.dp))
+                Button(onClick = { showCalendar = true }, colors = ButtonDefaults.buttonColors(containerColor = CardBg), shape = RoundedCornerShape(10.dp), modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.DateRange, null, tint = PrimaryBlue)
+                    Spacer(Modifier.width(8.dp))
+                    Text(if (selectedDate.isBlank()) "Seleccionar fecha" else selectedDate, color = if (selectedDate.isBlank()) TextMuted else TextPrimary)
                 }
             }
 
-            // ── Franjas horarias ──────────────────────────────────────────
             if (selectedFacilityId != 0 && selectedDate.isNotBlank()) {
                 item {
-                    SectionTitle("Hora (10:00 – 22:00, franjas de 1 hora)")
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    // Grid 3 columnas
-                    val rows = timeSlots.chunked(3)
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        rows.forEach { rowSlots ->
-                            Row(
-                                modifier            = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                rowSlots.forEach { slot ->
-                                    val taken    = bookedSlots.contains(slot)
-                                    val selected = selectedSlot == slot
-                                    val bgColor = when {
-                                        taken    -> Color(0xFF37474F)   // gris: ocupada
-                                        selected -> BlueMain            // azul: seleccionada
-                                        else     -> CardColor           // oscuro: libre
-                                    }
-                                    val textColor = when {
-                                        taken    -> TextSecondary
-                                        selected -> White
-                                        else     -> White
-                                    }
-                                    Button(
-                                        onClick  = { if (!taken) selectedSlot = slot },
-                                        enabled  = !taken,
-                                        colors   = ButtonDefaults.buttonColors(
-                                            containerColor         = bgColor,
-                                            disabledContainerColor = bgColor
-                                        ),
-                                        shape    = RoundedCornerShape(8.dp),
-                                        contentPadding = PaddingValues(vertical = 8.dp),
-                                        modifier = Modifier.weight(1f)
-                                    ) {
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Text(slot, color = textColor, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                                            Text(
-                                                if (taken) "Ocupada" else "Libre",
-                                                color    = if (taken) Color(0xFFEF5350) else Color(0xFF4CAF50),
-                                                fontSize = 10.sp
-                                            )
-                                        }
-                                    }
-                                }
-                                // Relleno si la fila tiene menos de 3
-                                repeat(3 - rowSlots.size) {
-                                    Spacer(modifier = Modifier.weight(1f))
-                                }
+                    Text("Hora de inicio", color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.height(6.dp))
+                    TimeGrid(hours = allHours.dropLast(1), existingReservations = existingReservations, selectedHour = selectedStart, isStartPicker = true, otherHour = selectedEnd) { h ->
+                        selectedStart = h
+                        if (selectedEnd.isNotBlank() && !isValidRange(h, selectedEnd)) selectedEnd = ""
+                    }
+                }
+                if (selectedStart.isNotBlank()) {
+                    item {
+                        Text("Hora de fin", color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                        Spacer(Modifier.height(6.dp))
+                        TimeGrid(hours = allHours.filter { timeToMinutes(it) > timeToMinutes(selectedStart) }, existingReservations = existingReservations, selectedHour = selectedEnd, isStartPicker = false, otherHour = selectedStart) { selectedEnd = it }
+                    }
+                }
+                if (selectedStart.isNotBlank() && selectedEnd.isNotBlank()) {
+                    item {
+                        Card(colors = CardDefaults.cardColors(containerColor = PrimaryBlue.copy(alpha = 0.1f)), shape = RoundedCornerShape(10.dp), modifier = Modifier.fillMaxWidth()) {
+                            Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.EuroSymbol, null, tint = SuccessGreen)
+                                Spacer(Modifier.width(8.dp))
+                                Text("$selectedStart – $selectedEnd · %.0f€".format(precio), color = TextPrimary, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }
                 }
             }
 
-            // ── Error ─────────────────────────────────────────────────────
-            item {
-                error?.let {
-                    Text(it, color = Color(0xFFEF5350), fontSize = 13.sp)
-                }
-            }
+            item { error?.let { Text(it, color = DangerRed, fontSize = 13.sp) } }
 
-            // ── Confirmar ─────────────────────────────────────────────────
             item {
                 Button(
                     onClick = {
+                        error = null
                         when {
-                            selectedFacilityId == 0 ->
-                                error = "Selecciona una instalación"
-                            selectedDate.isBlank() ->
-                                error = "Selecciona una fecha"
-                            selectedSlot.isBlank() ->
-                                error = "Selecciona una franja horaria"
+                            selectedFacilityId == 0 -> error = "Selecciona una instalación"
+                            selectedDate.isBlank()  -> error = "Selecciona una fecha"
+                            selectedStart.isBlank() -> error = "Selecciona hora de inicio"
+                            selectedEnd.isBlank()   -> error = "Selecciona hora de fin"
                             else -> {
-                                val horaFin = calcularHoraFin(selectedSlot)
-                                vm.addReservation(
-                                    Reservation(
-                                        id                = 0,
-                                        userId            = userId,
-                                        userName          = userName,
-                                        instalacionId     = selectedFacilityId,
-                                        instalacionNombre = selectedFacilityName,
-                                        fecha             = selectedDate,
-                                        horaInicio        = selectedSlot,
-                                        horaFin           = horaFin
-                                    )
+                                vm.addReservationWithOverlapCheck(
+                                    reservation = Reservation(0, userId, userName, selectedFacilityId, selectedFacilityName, selectedDate, selectedStart, selectedEnd, precio),
+                                    onSuccess = { navController.popBackStack() },
+                                    onError   = { msg -> error = msg }
                                 )
-                                navController.popBackStack()
                             }
                         }
                     },
-                    colors   = ButtonDefaults.buttonColors(containerColor = BlueMain),
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                    shape    = RoundedCornerShape(12.dp)
-                ) {
-                    Text("Confirmar Reserva", color = White, fontWeight = FontWeight.Bold)
-                }
-                Spacer(modifier = Modifier.height(16.dp))
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                    modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(12.dp),
+                    enabled = selectedStart.isNotBlank() && selectedEnd.isNotBlank()
+                ) { Text("Confirmar Reserva", color = Color.White, fontWeight = FontWeight.Bold) }
+                Spacer(Modifier.height(16.dp))
             }
         }
     }
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// MIS RESERVAS — solo las del usuario que ha iniciado sesión
-// ──────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun TimeGrid(hours: List<String>, existingReservations: List<Reservation>, selectedHour: String, isStartPicker: Boolean, otherHour: String, onSelect: (String) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        hours.chunked(3).forEach { row ->
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                row.forEach { hour ->
+                    val blocked = existingReservations.any { res ->
+                        if (isStartPicker) timeToMinutes(hour) >= timeToMinutes(res.horaInicio) && timeToMinutes(hour) < timeToMinutes(res.horaFin)
+                        else otherHour.isNotBlank() && timeToMinutes(otherHour) < timeToMinutes(res.horaFin) && timeToMinutes(hour) > timeToMinutes(res.horaInicio)
+                    }
+                    val isSelected = selectedHour == hour
+                    Button(
+                        onClick = { if (!blocked) onSelect(hour) }, enabled = !blocked,
+                        colors = ButtonDefaults.buttonColors(containerColor = when { blocked -> Color(0xFFE5E7EB); isSelected -> PrimaryBlue; else -> CardBg }, disabledContainerColor = Color(0xFFE5E7EB)),
+                        shape = RoundedCornerShape(8.dp), contentPadding = PaddingValues(vertical = 8.dp), modifier = Modifier.weight(1f)
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(hour, color = if (blocked) TextMuted else if (isSelected) Color.White else TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text(if (blocked) "Ocupada" else "Libre", color = if (blocked) DangerRed else SuccessGreen, fontSize = 10.sp)
+                        }
+                    }
+                }
+                repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyReservationsScreen(navController: NavController, userId: Int = 0) {
     val context = LocalContext.current
     val vm: ReservationViewModel = viewModel(factory = ReservationViewModelFactory(context))
     val reservations by vm.reservations.collectAsState()
-
-    LaunchedEffect(userId) {
-        vm.loadByUser(userId)
-    }
+    LaunchedEffect(userId) { vm.loadByUser(userId) }
 
     Scaffold(
-        containerColor = DarkBg,
+        containerColor = BgColor,
         topBar = {
             TopAppBar(
-                title = { Text("Mis Reservas", color = White, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = null, tint = White)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkSurface)
+                title = { Text("Mis Reservas", color = TextPrimary, fontWeight = FontWeight.Bold) },
+                navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.Default.ArrowBack, null, tint = TextPrimary) } },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = SurfaceColor)
             )
         }
     ) { padding ->
         if (reservations.isEmpty()) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text("No tienes reservas", color = TextSecondary)
-            }
+            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { Text("No tienes reservas", color = TextMuted) }
         } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(reservations) { res ->
-                    ReservationAdminCard(
-                        reservation = res,
-                        onDelete    = { vm.deleteReservation(res.id) }
-                    )
-                }
+            LazyColumn(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                items(reservations) { res -> ReservationCard(reservation = res, onDelete = { vm.deleteReservation(res.id) }) }
             }
         }
     }
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-/** Calcula la hora de fin sumando 1 hora. Ej: "10:00" → "11:00" */
-private fun calcularHoraFin(horaInicio: String): String {
-    val parts = horaInicio.split(":")
-    val hora  = parts[0].toInt()
-    return String.format("%02d:00", hora + 1)
+fun timeToMinutes(time: String): Int {
+    val parts = time.split(":")
+    return parts[0].toInt() * 60 + (parts.getOrNull(1)?.toInt() ?: 0)
 }
 
-@Composable
-private fun SectionTitle(text: String) {
-    Text(text, color = White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-    Spacer(modifier = Modifier.height(6.dp))
-}
+fun isValidRange(start: String, end: String) = timeToMinutes(start) < timeToMinutes(end)
